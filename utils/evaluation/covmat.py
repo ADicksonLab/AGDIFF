@@ -21,7 +21,8 @@ def get_rmsd_confusion_matrix(data: Data, useFF=False):
     # assert num_gen == data.num_pos_gen.item()
     # assert num_ref == data.num_pos_ref.item()
 
-    rmsd_confusion_mat = -1 * np.ones([num_ref, num_gen],dtype=np.float)
+    # rmsd_confusion_mat = -1 * np.ones([num_ref, num_gen],dtype=np.float)
+    rmsd_confusion_mat = -1 * np.ones([num_ref, num_gen],dtype=float)
     
     for i in range(num_gen):
         gen_mol = set_rdmol_positions(data['rdmol'], data['pos_gen'][i])
