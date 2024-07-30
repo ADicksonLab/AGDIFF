@@ -40,7 +40,7 @@ To generate conformations for entire or part of test sets, use:
 python test.py ${log}/${model}/checkpoints/${iter}.pt \
     --start_idx 0 --end_idx 200
 ```
-Here `start_idx` and `end_idx` indicate the range of the test set that we want to use. To reproduce the paper's results, you should use indexes 0 and 200 for the start_idx and end_idx respectively. All hyper-parameters related to sampling can be set in `test.py` files. Specifically, for testing the qm9 model, you could add the additional arg `--w_global 0.3`, which empirically shows slightly better results.
+Here `start_idx` and `end_idx` indicate the range of the test set that we want to use. To reproduce the paper's results, you should use 0 and 200 for start_idx and end_idx, respectively. All hyper-parameters related to sampling can be set in `test.py` files. Specifically, for testing the qm9 model, you could add the additional arg `--w_global 0.3`, which empirically shows slightly better results.
 
 
 ## Evaluation
