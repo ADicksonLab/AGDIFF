@@ -5,6 +5,11 @@
 The official implementation of AGDIFF: Attention-Enhanced Diffusion for Molecular Geometry Prediction. AGDIFF introduces a novel approach that enhances diffusion models with attention mechanisms and an improved SchNet architecture, achieving state-of-the-art performance in predicting molecular geometries.
 
 
+
+https://github.com/user-attachments/assets/f0c636f8-4677-41c7-8f0a-009643c999d2
+
+
+
 ### Unique Features of AGDIFF
 
 - **Attention Mechanisms**: Enhances the global and local encoders with attention mechanisms for better feature extraction and integration.
