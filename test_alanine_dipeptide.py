@@ -96,7 +96,7 @@ def save_dcd_alanine(pkl_path, pdb_path, dcd_dir):
     Creates DCD trajectories from the sample pkl file.
 
     :param pkl_path: Path to the saved sample pkl file.
-    :pdb_path: Path to the PDB file.
+    :param pdb_path: Path to the PDB file.
     :param dcd_dir: Path to directory you want to save DCD files.
     :return: None.
     """
