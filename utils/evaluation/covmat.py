@@ -18,10 +18,6 @@ def get_rmsd_confusion_matrix(data: Data, useFF=False):
     num_gen = data['pos_gen'].shape[0]
     num_ref = data['pos_ref'].shape[0]
 
-    # assert num_gen == data.num_pos_gen.item()
-    # assert num_ref == data.num_pos_ref.item()
-
-    # rmsd_confusion_mat = -1 * np.ones([num_ref, num_gen],dtype=np.float)
     rmsd_confusion_mat = -1 * np.ones([num_ref, num_gen],dtype=float)
     
     for i in range(num_gen):
@@ -40,8 +36,6 @@ def get_rmsd_confusion_matrix(data: Data, useFF=False):
 def evaluate_conf(data: Data, useFF=False, threshold=0.5):
     rmsd_confusion_mat = get_rmsd_confusion_matrix(data, useFF=useFF)
     rmsd_ref_min = rmsd_confusion_mat.min(-1)
-    #print('done one mol')
-    #print(rmsd_ref_min)
     return (rmsd_ref_min<=threshold).mean(), rmsd_ref_min.mean()
 
 def print_covmat_results(results, print_fn=print):
@@ -108,7 +102,6 @@ class CovMatEvaluator(object):
         covp_scores = []
         matp_scores = []
         for confusion_mat in tqdm(self.pool.imap(func, filtered_data_list), total=len(filtered_data_list)):
-            # confusion_mat: (num_ref, num_gen)
             rmsd_ref_min = confusion_mat.min(-1)    # np (num_ref, )
             rmsd_gen_min = confusion_mat.min(0)     # np (num_gen, )
             rmsd_cov_thres = rmsd_ref_min.reshape(-1, 1) <= self.thresholds.reshape(1, -1)  # np (num_ref, num_thres)
@@ -131,5 +124,4 @@ class CovMatEvaluator(object):
             'CoverageP': covp_scores,
             'MatchingP': matp_scores
         })
-        # print_conformation_eval_results(results)
         return results
