@@ -190,7 +190,7 @@ def _extend_graph_order(num_nodes, edge_index, edge_type, order=3):
     return new_edge_index, new_edge_type
     
 
-def _extend_to_radius_graph(pos, edge_index, edge_type, cutoff, batch, unspecified_type_number=0, is_sidechain=None):
+def _extend_to_radius_graph(pos, edge_index, edge_type, cutoff, batch, unspecified_type_number=0):
 
     assert edge_type.dim() == 1
     N = pos.size(0)
@@ -201,26 +201,8 @@ def _extend_to_radius_graph(pos, edge_index, edge_type, cutoff, batch, unspecifi
         torch.Size([N, N])
     )
 
-    if is_sidechain is None:
-        rgraph_edge_index = radius_graph(pos, r=cutoff, batch=batch)    # (2, E_r)
-    else:
-        # fetch sidechain and its batch index
-        is_sidechain = is_sidechain.bool()
-        dummy_index = torch.arange(pos.size(0), device=pos.device)
-        sidechain_pos = pos[is_sidechain]
-        sidechain_index = dummy_index[is_sidechain]
-        sidechain_batch = batch[is_sidechain]
-
-        assign_index = radius(x=pos, y=sidechain_pos, r=cutoff, batch_x=batch, batch_y=sidechain_batch)
-        r_edge_index_x = assign_index[1]
-        r_edge_index_y = assign_index[0]
-        r_edge_index_y = sidechain_index[r_edge_index_y]
-
-        rgraph_edge_index1 = torch.stack((r_edge_index_x, r_edge_index_y)) # (2, E)
-        rgraph_edge_index2 = torch.stack((r_edge_index_y, r_edge_index_x)) # (2, E)
-        rgraph_edge_index = torch.cat((rgraph_edge_index1, rgraph_edge_index2), dim=-1) # (2, 2E)
-        # delete self loop
-        rgraph_edge_index = rgraph_edge_index[:, (rgraph_edge_index[0] != rgraph_edge_index[1])]
+    
+    rgraph_edge_index = radius_graph(pos, r=cutoff, batch=batch)    # (2, E_r)
 
     rgraph_adj = torch.sparse.LongTensor(
         rgraph_edge_index, 
@@ -239,7 +221,7 @@ def _extend_to_radius_graph(pos, edge_index, edge_type, cutoff, batch, unspecifi
 
 
 def extend_graph_order_radius(num_nodes, pos, edge_index, edge_type, batch, order=3, cutoff=10.0, 
-                              extend_order=True, extend_radius=True, is_sidechain=None):
+                              extend_order=True, extend_radius=True):
     
     if extend_order:
         edge_index, edge_type = _extend_graph_order(
@@ -256,9 +238,7 @@ def extend_graph_order_radius(num_nodes, pos, edge_index, edge_type, batch, orde
             edge_index=edge_index, 
             edge_type=edge_type, 
             cutoff=cutoff, 
-            batch=batch,
-            is_sidechain=is_sidechain
-
+            batch=batch
         )
     
     return edge_index, edge_type

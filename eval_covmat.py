@@ -2,7 +2,6 @@ import os
 import argparse
 import pickle
 import torch
-
 from utils.datasets import PackedConformationDataset
 from utils.evaluation.covmat import CovMatEvaluator, print_covmat_results
 from utils.misc import *

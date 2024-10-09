@@ -4,13 +4,10 @@ import argparse
 import torch
 import numpy as np
 import sys
-sys.path.append('/home/andre/micromamba/envs/equiformer_v2/lib/python3.8/site-packages')
 from psikit import Psikit
-
 from tqdm.auto import tqdm
 from easydict import EasyDict
 from torch_geometric.data import Data
-
 from utils.datasets import PackedConformationDataset
 from utils.chem import set_rdmol_positions
 
@@ -150,11 +147,6 @@ if __name__ == '__main__':
 
         prop_gts = get_ensemble_energy(get_prop_matrix(dset[smiles])) * HART_TO_EV
         prop_gen = get_ensemble_energy(get_prop_matrix(gens[smiles])) * HART_TO_EV
-        # prop_gts = np.mean(get_prop_matrix(dset[smiles]), axis=1)
-        # prop_gen = np.mean(get_prop_matrix(gens[smiles]), axis=1)
-
-        # print(get_prop_matrix(gens[smiles])[0])
-
         prop_diff = np.abs(prop_gts - prop_gen)
 
         print('\nProperty: %s' % smiles)

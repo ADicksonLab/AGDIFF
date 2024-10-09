@@ -25,20 +25,6 @@ def convert_cluster_score_d(cluster_score_d, cluster_pos, cluster_edge_index, cl
     return score_pos
 
 
-'''def get_angle(pos, angle_index):
-    """
-    Args:
-        pos:  (N, 3)
-        angle_index:  (3, A), left-center-right.
-    """
-    n1, ctr, n2 = angle_index   # (A, )
-    v1 = pos[n1] - pos[ctr] # (A, 3)
-    v2 = pos[n2] - pos[ctr]
-    inner_prod = torch.sum(v1 * v2, dim=-1, keepdim=True)   # (A, 1)
-    length_prod = torch.norm(v1, dim=-1, keepdim=True) * torch.norm(v2, dim=-1, keepdim=True)   # (A, 1)
-    angle = torch.acos(inner_prod / length_prod)    # (A, 1)
-    return angle'''
-
 def get_angle(pos, angle_index):
     n1, ctr, n2 = angle_index
     v1 = pos[n1] - pos[ctr]

@@ -34,14 +34,14 @@ AGDIFF introduces a novel approach that enhances diffusion models with attention
 0. [Generation](#generation)
 0. [Evaluation](#evaluation)
 0. [Acknowledgment](#acknowledgement)
-0. [Citattion](#citation)
+0. [Citation](#citation)
 
 
 
 ## Environment Setup ##
 
 
-### Install via Conda
+### Install dependencies via Conda
 
 ```bash
 conda env create -f agdiff.yml
@@ -62,8 +62,8 @@ AGDIFF's training details and hyper-parameters are provided in the config files 
 To train the model, use the following commands:
 
 ```bash
-python train.py qm9_default.yml
-python train.py drugs_default.yml
+python train.py configs/qm9_default.yml
+python train.py configs/drugs_default.yml
 ``` 
 Model checkpoints, configuration YAML files, and training logs will be saved in a directory specified by `--logdir` in `train.py`.
 
@@ -103,7 +103,7 @@ If you use our code or method in your work, please consider citing the following
 @misc{wyzykowskiAGDIFFAttentionEnhancedDiffusion2024,
   title = {{{AGDIFF}}: {{Attention-Enhanced Diffusion}} for {{Molecular Geometry Prediction}}},
   shorttitle = {{{AGDIFF}}},
-  author = {Wyzykowski, Andr{\'e} Brasil Vieira and Niazi, Fatemeh Fathi and Dickson, Alex},
+  author = {Wyzykowski, Andr{\'e} Brasil Vieira and Fathi Niazi, Fatemeh and Dickson, Alex},
   year = {2024},
   month = oct,
   publisher = {ChemRxiv},
@@ -114,5 +114,6 @@ If you use our code or method in your work, please consider citing the following
   keywords = {attention,conformer,diffusion models,generative,GNN,graph neural network,machine learning,structure}
 }
 ```
+
 
 Please direct any questions to Alex Dickson (alexrd@msu.edu).

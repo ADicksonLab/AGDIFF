@@ -625,23 +625,6 @@ def preprocess_GEOM_dataset_with_fixed_num_conf(base_path, dataset_name, conf_pe
             datas.append(data)
         assert len(datas) == conf_per_mol
 
-        # split
-        '''
-        eps = np.random.rand()
-        if eps <= train_size:
-            train_data.extend(datas)
-            num_mols += [1, 1, 0, 0]
-            num_confs += [len(datas), len(datas), 0, 0]
-        elif eps <= train_size + val_size:
-            val_data.extend(datas)
-            num_mols += [1, 0, 1, 0]
-            num_confs += [len(datas), 0, len(datas), 0]
-        else:
-            test_data.extend(datas)
-            num_mols += [1, 0, 0, 1]
-            num_confs += [len(datas), 0, 0, len(datas)]
-        '''
-
         if index2split[i] == 'train':
             train_data.extend(datas)
             num_mols += [1, 1, 0, 0]
