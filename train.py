@@ -58,12 +58,14 @@ if __name__ == '__main__':
     transforms = CountNodesPerGraph()
     train_set = ConformationDataset(config.dataset.train, transform=transforms)
     val_set = ConformationDataset(config.dataset.val, transform=transforms)
-    train_iterator = inf_iterator(DataLoader(train_set, config.train.batch_size, shuffle=True, num_workers=20, pin_memory=True))
+    train_iterator = inf_iterator(DataLoader(train_set, config.train.batch_size, shuffle=True, num_workers=1, pin_memory=True))
     val_loader = DataLoader(val_set, config.train.batch_size, shuffle=False)
 
     # Model
     logger.info('Building model...')
     model = get_model(config.model).to(args.device)
+
+
     logger.info('Building model OK...')
 
     # Optimizer
@@ -205,4 +207,3 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         logger.info('Terminating...')
-
