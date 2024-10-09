@@ -20,7 +20,7 @@ AGDIFF introduces a novel approach that enhances diffusion models with attention
 	<img src="assets/agdiff_framework.png" alt="photo not available" width="80%" height="80%">
 </p>
 
-
+ 
 
 https://github.com/user-attachments/assets/f0c636f8-4677-41c7-8f0a-009643c999d2
 
@@ -115,5 +115,3 @@ If you use our code or method in your work, please consider citing the following
 ```
 
 Please direct any questions to Alex Dickson (alexrd@msu.edu).
-
-
