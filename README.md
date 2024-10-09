@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ADicksonLab/AGDIFF/blob/main/LICENSE)
 
+**[paper](https://chemrxiv.org/engage/chemrxiv/article-details/6703fbffcec5d6c14273d4ce)**
+
 The official implementation of AGDIFF: Attention-Enhanced Diffusion for Molecular Geometry Prediction. AGDIFF introduces a novel approach that enhances diffusion models with attention mechanisms and an improved SchNet architecture, achieving state-of-the-art performance in predicting molecular geometries.
 
 
