@@ -17,7 +17,7 @@ def get_rmsd_confusion_matrix(data: Data, useFF=False):
     num_gen = data['pos_gen'].shape[0]
     num_ref = data['pos_ref'].shape[0]
 
-    rmsd_confusion_mat = -1 * np.ones([num_ref, num_gen], dtype=np.float)
+    rmsd_confusion_mat = -1 * np.ones([num_ref, num_gen], dtype=float)
     
     for i in range(num_gen):
         gen_mol = set_rdmol_positions(data['rdmol'], data['pos_gen'][i])
@@ -105,8 +105,8 @@ class CovMatEvaluator(object):
 
         for idx, data in enumerate(tqdm(filtered_data_list, total=len(filtered_data_list))):
             confusion_mat = get_rmsd_confusion_matrix(data, useFF=self.use_force_field)
-            rmsd_ref_min = np.sort(confusion_mat, axis=-1)[:, :self.top_n]
-            rmsd_gen_min = np.sort(confusion_mat, axis=0)[:self.top_n, :]
+            rmsd_ref_min = np.sort(confusion_mat, axis=-1) #[:, :self.top_n]
+            rmsd_gen_min = np.sort(confusion_mat, axis=0) #[:self.top_n, :]
             rmsd_cov_thres = rmsd_ref_min[:, 0].reshape(-1, 1) <= self.thresholds.reshape(1, -1)
             rmsd_jnk_thres = rmsd_gen_min[0].reshape(-1, 1) <= self.thresholds.reshape(1, -1)
 
