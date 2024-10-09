@@ -21,9 +21,7 @@ AGDIFF introduces a novel approach that enhances diffusion models with attention
 </p>
 
 
-<video src="assets/generation.mp4" controls="controls" style="max-width: 100%; height: auto;">
-    Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/78feda75-3a20-422a-9b3f-f96fceea69cc
 
 
 ## Content ##
