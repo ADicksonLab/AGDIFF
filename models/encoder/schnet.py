@@ -223,7 +223,7 @@ class SchNetEncoder(Module):
             self.scaling_modules.append(AdaptiveScalingModule(hidden_channels))  # One scaling module per InteractionBlock
 
 
-    def forward(self, z, edge_index, edge_length, edge_attr, embed_node=True):
+    def forward(self, z, edge_index, edge_length, edge_attr, embed_node:bool=True):
         if embed_node:
             assert z.dim() == 1 and z.dtype == torch.long
             h = self.embedding(z)
