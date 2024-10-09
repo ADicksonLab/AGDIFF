@@ -116,4 +116,4 @@ If you use our code or method in your work, please consider citing the following
 ```
 
 
-Please direct any questions to Alex Dickson (alexrd@msu.edu).
+Please direct any questions to André Wyzykowski (abvwmc@gmail.com) and Alex Dickson (alexrd@msu.edu).
