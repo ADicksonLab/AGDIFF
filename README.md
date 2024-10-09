@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ADicksonLab/AGDIFF/blob/main/LICENSE)
 
-**[paper](https://chemrxiv.org/engage/chemrxiv/article-details/6703fbffcec5d6c14273d4ce)**
+**[ChemRxiv](https://chemrxiv.org/engage/chemrxiv/article-details/6703fbffcec5d6c14273d4ce)**
 
 
 This repository contains the official implementation of the work "AGDIFF: Attention-Enhanced Diffusion for Molecular Geometry Prediction".
