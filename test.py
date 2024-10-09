@@ -23,14 +23,15 @@ def num_confs(num:str):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('ckpt', type=str, help='path for loading the checkpoint')
-    parser.add_argument('--save_traj', action='store_true', default=False,
+    parser.add_argument('config' , type = str , help='path for config .yml file')
+    parser.add_argument('--save_traj', action='store_true', default=True,
                     help='whether store the whole trajectory for sampling')
     parser.add_argument('--resume', type=str, default=None)
     parser.add_argument('--tag', type=str, default='')
     parser.add_argument('--num_confs', type=num_confs, default=num_confs('2x'))
     parser.add_argument('--test_set', type=str, default=None)
     parser.add_argument('--start_idx', type=int, default=0)
-    parser.add_argument('--end_idx', type=int, default=1000)
+    parser.add_argument('--end_idx', type=int, default=200)
     parser.add_argument('--out_dir', type=str, default=None)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--clip', type=float, default=1000.0)
@@ -49,7 +50,8 @@ if __name__ == '__main__':
 
     # Load checkpoint
     ckpt = torch.load(args.ckpt)
-    config_path = glob(os.path.join(os.path.dirname(os.path.dirname(args.ckpt)), '*.yml'))[0]
+    config_path = args.config
+    # config_path = glob(os.path.join(os.path.dirname(os.path.dirname(args.ckpt)), '*.yml'))[0]
     with open(config_path, 'r') as f:
         config = EasyDict(yaml.safe_load(f))
     seed_all(config.train.seed)
@@ -80,7 +82,7 @@ if __name__ == '__main__':
 
     test_set_selected = []
     for i, data in enumerate(test_set):
-        #if not (args.start_idx <= i < args.end_idx): continue
+        if not (args.start_idx <= i < args.end_idx): continue
         test_set_selected.append(data)
     print("SIZE  = ", len(test_set_selected))
     done_smiles = set()
