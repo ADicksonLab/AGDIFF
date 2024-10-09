@@ -28,7 +28,6 @@ AGDIFF introduces a novel approach that enhances diffusion models with attention
 
 ## Content ##
 0. [Environment Setup](#environment-setup)
-0. [Unique Features of AGDIFF](#unique-features-of-agdiff)
 0. [Dataset](#dataset)
 0. [Training](#training)
 0. [Generation](#generation)
