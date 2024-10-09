@@ -34,14 +34,14 @@ AGDIFF introduces a novel approach that enhances diffusion models with attention
 0. [Generation](#generation)
 0. [Evaluation](#evaluation)
 0. [Acknowledgment](#acknowledgement)
-0. [Citattion](#citation)
+0. [Citation](#citation)
 
 
 
 ## Environment Setup ##
 
 
-### Install via Conda
+### Install dependencies via Conda
 
 ```bash
 conda env create -f agdiff.yml
