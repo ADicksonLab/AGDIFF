@@ -17,7 +17,7 @@ AGDIFF introduces a novel approach that enhances diffusion models with attention
 - **Feature Expansion**: Extends the MLP Edge Encoder with feature expansion and processing, combining processed features and bond embeddings for more adaptable edge representations.
 
 <p align="center">
-	<img src="assets/agdiff_framework.png" alt="photo not available" width="80%" height="80%">
+	<img src="assets/agdiff_framework.png" alt="photo not available" width="80%" height="100%">
 </p>
 
 
