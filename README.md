@@ -17,18 +17,15 @@ AGDIFF introduces a novel approach that enhances diffusion models with attention
 - **Feature Expansion**: Extends the MLP Edge Encoder with feature expansion and processing, combining processed features and bond embeddings for more adaptable edge representations.
 
 <p align="center">
-	<img src="assets/agdiff_framework.png" alt="photo not available" width="80%" height="80%">
+	<img src="assets/agdiff_framework.png" alt="photo not available" width="80%" height="100%">
 </p>
 
 
-<video src="assets/generation.mp4" controls="controls" style="max-width: 100%; height: auto;">
-    Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/78feda75-3a20-422a-9b3f-f96fceea69cc
 
 
 ## Content ##
 0. [Environment Setup](#environment-setup)
-0. [Unique Features of AGDIFF](#unique-features-of-agdiff)
 0. [Dataset](#dataset)
 0. [Training](#training)
 0. [Generation](#generation)
@@ -114,6 +111,5 @@ If you use our code or method in your work, please consider citing the following
   keywords = {attention,conformer,diffusion models,generative,GNN,graph neural network,machine learning,structure}
 }
 ```
-
 
 Please direct any questions to André Wyzykowski (abvwmc@gmail.com) and Alex Dickson (alexrd@msu.edu).
