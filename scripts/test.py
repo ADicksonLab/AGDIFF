@@ -23,6 +23,8 @@ def num_confs(num:str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    description='Run sampling from a trained model.',
+    usage='%(prog)s <ckpt> <config> [--save_traj] [other options]'
     parser.add_argument('ckpt', type=str, help='path for loading the checkpoint')
     parser.add_argument('config' , type = str , help='path for config .yml file')
     parser.add_argument('--save_traj', action='store_true', default=True,
@@ -52,13 +54,16 @@ if __name__ == '__main__':
     # Load checkpoint
     ckpt = torch.load(args.ckpt)
     config_path = args.config
-    # config_path = glob(os.path.join(os.path.dirname(os.path.dirname(args.ckpt)), '*.yml'))[0]
+ 
     with open(config_path, 'r') as f:
         config = EasyDict(yaml.safe_load(f))
     seed_all(config.train.seed)
     log_dir = os.path.dirname(os.path.dirname(args.ckpt))
 
+
+
     # Logging
+
     output_dir = get_new_log_dir(os.path.join(log_dir,"samples"), 'sample', tag=args.tag)
     logger = get_logger('test', output_dir)
     logger.info(args)
