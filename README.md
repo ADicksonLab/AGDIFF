@@ -45,6 +45,12 @@ conda env create -f agdiff.yml
 conda activate agdiff
 ```
 
+Once your conda environment is activated, you can install the package locally in editable mode:
+
+```bash
+pip install -e .
+```
+
 
 
 ## Dataset ##
@@ -59,8 +65,8 @@ AGDIFF's training details and hyper-parameters are provided in the config files 
 To train the model, use the following commands:
 
 ```bash
-python train.py configs/qm9_default.yml
-python train.py configs/drugs_default.yml
+python scripts/train.py ./configs/qm9_default.yml
+python scripts/train.py ./configs/drugs_default.yml
 ``` 
 Model checkpoints, configuration YAML files, and training logs will be saved in a directory specified by `--logdir` in `train.py`.
 
@@ -69,7 +75,7 @@ Model checkpoints, configuration YAML files, and training logs will be saved in 
 To generate conformations for entire or part of test sets, use:
 
 ```bash 
-python test.py ${log}/${model}/checkpoints/${iter}.pt ./configs/qm9_default.yml \
+python scripts/test.py path/to/checkpoints/${iter}.pt ./configs/qm9_default.yml \
     --start_idx 0 --end_idx 200
 ```
 Here `start_idx` and `end_idx` indicate the range of the test set that we want to use. To reproduce the paper's results, you should use 0 and 200 for start_idx and end_idx, respectively. All hyper-parameters related to sampling can be set in `test.py` files. Specifically, for testing the qm9 model, you could add the additional arg `--w_global 0.3`, which empirically shows slightly better results.
@@ -84,8 +90,9 @@ After generating conformations, evaluate the results of benchmark tasks using th
 Calculate `COV` and `MAT` scores on the GEOM datasets with:
 
 ```bash
-python eval_covmat.py ${log}/${model}/${sample}/sample_all.pkl
+python scripts/evaluation/eval_covmat.py path/to/samples/sample_all.pkl
 ```
+
 
 ## Acknowledgement ##
 
