@@ -59,7 +59,7 @@ pip install -e .
 
 ### Official Dataset
 
-The preprocessed datasets (GEOM) provided by [[GEODIFF]](https://github.com/MinkaiXu/GeoDiff?tab=readme-ov-file#dataset) can be found in this [[Google Drive folder]](https://drive.google.com/drive/folders/18EmDt_TK157Ip5vWxUDUiKsjYN_zj51-?usp=sharing). After downloading and unzipping the dataset, it should be placed in the folder path specified by the `dataset` variable in the configuration files located at `./configs/*.yml`. You may also want to use the pretrained model provided in the same link.
+The preprocessed datasets (GEOM) provided by [GEODIFF](https://github.com/MinkaiXu/GeoDiff?tab=readme-ov-file#dataset) can be found in this [[Google Drive folder]](https://drive.google.com/drive/folders/18EmDt_TK157Ip5vWxUDUiKsjYN_zj51-?usp=sharing). After downloading and unzipping the dataset, it should be placed in the folder path specified by the `dataset` variable in the configuration files located at `./configs/*.yml`. You may also want to use the pretrained model provided in the same link.
 
 
 The official raw GEOM dataset is also available [[here]](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/JNGTDF).
