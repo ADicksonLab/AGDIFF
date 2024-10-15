@@ -60,8 +60,6 @@ if __name__ == '__main__':
     seed_all(config.train.seed)
     log_dir = os.path.dirname(os.path.dirname(args.ckpt))
 
-
-
     # Logging
 
     output_dir = get_new_log_dir(os.path.join(log_dir,"samples"), 'sample', tag=args.tag)
