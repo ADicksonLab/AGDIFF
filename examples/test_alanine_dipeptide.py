@@ -156,8 +156,11 @@ def calc_rmsd(traj_id, dcd_dir,pdb_path, output_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    description='Run sampling from a trained model.',
+    usage='%(prog)s <ckpt> <config> <pdb_path> [--save_traj] [other options]'
     parser.add_argument('ckpt', type=str, help='path for loading the checkpoint')
     parser.add_argument('config' , type = str , help='path for config .yml file')
+    parser.add_argument('pdb_path' , type = str , help='path for pdb file')
     parser.add_argument('--save_traj', action='store_true', default=True,
                     help='whether store the whole trajectory for sampling')
     parser.add_argument('--resume', type=str, default=None)
@@ -182,6 +185,7 @@ if __name__ == '__main__':
 
     # Load checkpoint
     ckpt = torch.load(args.ckpt)
+    pdb_path = args.pdb_path
  
     with open(args.config, 'r') as f:
         config = EasyDict(yaml.safe_load(f))
@@ -222,7 +226,7 @@ if __name__ == '__main__':
             done_smiles.add(data.smiles)
 
     # Load the PDB file
-    mol = Chem.MolFromPDBFile("alanine_dipeptide.pdb", removeHs=False) 
+    mol = Chem.MolFromPDBFile(pdb_path, removeHs=False) 
 
     # Ensure the molecule is properly loaded and has a conformer
     if mol is not None and mol.GetNumConformers() > 0:
