@@ -259,7 +259,6 @@ dependencies:
       - debtcollector==3.0.0
       - docutils==0.21.2
       - easydict==1.13
-      - example-package-fatemehfathi==0.0.1
       - fonttools==4.53.1
       - frozenlist==1.4.1
       - fsspec==2024.6.1
@@ -277,7 +276,6 @@ dependencies:
       - mdurl==0.1.2
       - more-itertools==10.5.0
       - multidict==6.0.5
-      - my-simple-test-package-fatemehfathi==0.0.1
       - nh3==0.2.18
       - numexpr==2.10.1
       - pip==24.2
