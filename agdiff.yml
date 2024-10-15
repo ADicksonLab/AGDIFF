@@ -259,7 +259,6 @@ dependencies:
       - debtcollector==3.0.0
       - docutils==0.21.2
       - easydict==1.13
-      - example-package-fatemehfathi==0.0.1
       - fonttools==4.53.1
       - frozenlist==1.4.1
       - fsspec==2024.6.1
@@ -277,7 +276,6 @@ dependencies:
       - mdurl==0.1.2
       - more-itertools==10.5.0
       - multidict==6.0.5
-      - my-simple-test-package-fatemehfathi==0.0.1
       - nh3==0.2.18
       - numexpr==2.10.1
       - pip==24.2
@@ -299,10 +297,10 @@ dependencies:
       - tensorboard-data-server==0.7.2
       - threadpoolctl==3.5.0
       - tomli==2.0.2
-      - torch-cluster==1.6.3+pt23cu121
-      - torch-geometric==2.5.3
-      - torch-sparse==0.6.18+pt23cu121
-      - torch-spline-conv==1.2.2+pt23cu121
+      # - torch-cluster==1.6.3+pt23cu121
+      # - torch-geometric==2.5.3
+      # - torch-sparse==0.6.18+pt23cu121
+      # - torch-spline-conv==1.2.2+pt23cu121
       - tqdm==4.66.4
       - twine==5.1.1
       - werkzeug==3.0.3
