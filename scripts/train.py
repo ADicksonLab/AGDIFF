@@ -23,12 +23,14 @@ if __name__ == '__main__':
     
     agdiff_root_dir = os.path.dirname(agdiff_root)
     models_dir = os.path.join(agdiff_root_dir, 'models')
+    current_file_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root_dir = os.path.abspath(os.path.join(current_file_dir, '..'))
 
     parser = argparse.ArgumentParser()
     parser.add_argument('config', type=str)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--resume_iter', type=int, default=None)
-    parser.add_argument('--logdir', type=str, default='../logs')
+    parser.add_argument('--logdir', type=str, default=os.path.join(project_root_dir, 'logs'))
     args = parser.parse_args()
 
 
@@ -213,6 +215,8 @@ if __name__ == '__main__':
                         'avg_val_loss': avg_val_loss,
                     }, os.path.join(best_model_dir , 'best_model.pt'))
                     logger.info(f'New best model saved with loss {avg_val_loss}')
+
+                    print(f'best_model_path: {os.path.join(best_model_dir , "best_model.pt")}')
 
     except KeyboardInterrupt:
         logger.info('Terminating...')
