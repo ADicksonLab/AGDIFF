@@ -7,7 +7,7 @@ from torch_geometric.data import Data
 from torch_geometric.utils import to_dense_adj, dense_to_sparse
 from math import pi as PI
 
-from utils.chem import BOND_TYPES
+from agdiff.utils.chem import BOND_TYPES
 from ..common import MeanReadout, SumReadout, MultiLayerPerceptron
 import torch.nn as nn
 from torch.nn import Sequential, Linear
