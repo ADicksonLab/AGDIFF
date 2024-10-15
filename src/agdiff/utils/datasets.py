@@ -3,16 +3,13 @@ import pickle
 import copy
 import json
 from collections import defaultdict
-
 import numpy as np
 import random
 
 import torch
 from torch_geometric.data import Data, Dataset, Batch
-
 from torch_geometric.utils import to_networkx
 from torch_scatter import scatter
-#from torch.utils.data import Dataset
 
 import rdkit
 from rdkit import Chem
@@ -20,11 +17,11 @@ from rdkit.Chem.rdchem import Mol, HybridizationType, BondType
 from rdkit import RDLogger
 import networkx as nx
 from tqdm import tqdm
+from .chem import BOND_TYPES, mol_to_smiles
 
 # import sidechainnet as scn
 RDLogger.DisableLog('rdApp.*')
 
-from .chem import BOND_TYPES, mol_to_smiles
 
 def prepare_pdb2(scn_dir, data_path):
 

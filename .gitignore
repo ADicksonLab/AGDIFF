@@ -1,3 +1,11 @@
 __pycache__/
 .DS_STORE
 .DS_Store
+*.egg-info
+
+build/
+dist/
+data/
+logs/
+configs/qm9_temp.yml
+

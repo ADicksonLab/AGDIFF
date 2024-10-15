@@ -1,4 +1,3 @@
-# coding=utf-8
 from typing import Callable, Union
 from torch_geometric.typing import OptPairTensor, Adj, OptTensor, Size
 

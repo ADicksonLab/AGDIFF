@@ -7,10 +7,11 @@ from glob import glob
 from tqdm.auto import tqdm
 from easydict import EasyDict
 
-from models.epsnet import *
-from utils.datasets import *
-from utils.transforms import *
-from utils.misc import *
+from agdiff.models.epsnet import *
+from agdiff.utils.datasets import *
+from agdiff.utils.transforms import *
+from agdiff.utils.misc import *
+
 
 def num_confs(num:str):
     if num.endswith('x'):
@@ -22,6 +23,8 @@ def num_confs(num:str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    description='Run sampling from a trained model.',
+    usage='%(prog)s <ckpt> <config> [--save_traj] [other options]'
     parser.add_argument('ckpt', type=str, help='path for loading the checkpoint')
     parser.add_argument('config' , type = str , help='path for config .yml file')
     parser.add_argument('--save_traj', action='store_true', default=True,
@@ -35,7 +38,7 @@ if __name__ == '__main__':
     parser.add_argument('--out_dir', type=str, default=None)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--clip', type=float, default=1000.0)
-    parser.add_argument('--n_steps', type=int, default=5000,
+    parser.add_argument('--n_steps', type=int, default=2,
                     help='sampling num steps; for DSM framework, this means num steps for each noise scale')
     parser.add_argument('--global_start_sigma', type=float, default=0.5,
                     help='enable global gradients only when noise is low')
@@ -51,14 +54,15 @@ if __name__ == '__main__':
     # Load checkpoint
     ckpt = torch.load(args.ckpt)
     config_path = args.config
-    # config_path = glob(os.path.join(os.path.dirname(os.path.dirname(args.ckpt)), '*.yml'))[0]
+ 
     with open(config_path, 'r') as f:
         config = EasyDict(yaml.safe_load(f))
     seed_all(config.train.seed)
     log_dir = os.path.dirname(os.path.dirname(args.ckpt))
 
     # Logging
-    output_dir = get_new_log_dir(log_dir, 'sample', tag=args.tag)
+
+    output_dir = get_new_log_dir(os.path.join(log_dir,"samples"), 'sample', tag=args.tag)
     logger = get_logger('test', output_dir)
     logger.info(args)
 
