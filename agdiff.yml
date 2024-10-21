@@ -194,7 +194,7 @@ dependencies:
   - pytorch=2.3.1=py3.10_cuda12.1_cudnn8.9.2_0
   - pytorch-cuda=12.1=ha16c6d3_5
   - pytorch-mutex=1.0=cuda
-  - pytorch-scatter=2.1.2=py310_torch_2.3.0_cu121
+  #- pytorch-scatter=2.1.2=py310_torch_2.3.0_cu121
   - pytz=2024.1=pyhd8ed1ab_0
   - pyyaml=6.0.1=py310h2372a71_1
   - pyzmq=26.2.0=py310h71f11fc_2
