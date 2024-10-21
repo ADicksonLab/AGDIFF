@@ -8,8 +8,8 @@ from psikit import Psikit
 from tqdm.auto import tqdm
 from easydict import EasyDict
 from torch_geometric.data import Data
-from utils.datasets import PackedConformationDataset
-from utils.chem import set_rdmol_positions
+from agdiff.utils.datasets import PackedConformationDataset
+from agdiff.utils.chem import set_rdmol_positions
 
 
 class PropertyCalculator(object):

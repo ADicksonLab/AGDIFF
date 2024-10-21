@@ -10,19 +10,27 @@ import torch.utils.tensorboard
 from torch.nn.utils import clip_grad_norm_
 from torch_geometric.data import DataLoader
 
-from models.epsnet import get_model
-from utils.datasets import ConformationDataset
-from utils.transforms import *
-from utils.misc import *
-from utils.common import get_optimizer, get_scheduler
+
+from agdiff.models.epsnet import get_model
+from agdiff.utils.datasets import ConformationDataset
+from agdiff.utils.transforms import *
+from agdiff.utils.misc import *
+from agdiff.utils.common import get_optimizer, get_scheduler
+from agdiff import __file__ as agdiff_root 
 torch.backends.cudnn.benchmark = True
 
 if __name__ == '__main__':
+    
+    agdiff_root_dir = os.path.dirname(agdiff_root)
+    models_dir = os.path.join(agdiff_root_dir, 'models')
+    current_file_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root_dir = os.path.abspath(os.path.join(current_file_dir, '..'))
+
     parser = argparse.ArgumentParser()
     parser.add_argument('config', type=str)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--resume_iter', type=int, default=None)
-    parser.add_argument('--logdir', type=str, default='./logs')
+    parser.add_argument('--logdir', type=str, default=os.path.join(project_root_dir, 'logs'))
     args = parser.parse_args()
 
 
@@ -44,7 +52,10 @@ if __name__ == '__main__':
         os.symlink(os.path.realpath(resume_from), os.path.join(log_dir, os.path.basename(resume_from.rstrip("/"))))
     else:
         log_dir = get_new_log_dir(args.logdir, prefix=config_name)
-        shutil.copytree('./models', os.path.join(log_dir, 'models'))
+        # you may want to uncomment this line if you'd like to have a copy of the models folder in your output dir
+        # shutil.copytree( models_dir, os.path.join(log_dir, 'models'))  
+      
+
     ckpt_dir = os.path.join(log_dir, 'checkpoints')
     os.makedirs(ckpt_dir, exist_ok=True)
     logger = get_logger('train', log_dir)
@@ -189,9 +200,9 @@ if __name__ == '__main__':
                 # Check if the current validation loss is the best
                 if avg_val_loss < best_val_loss:
                     best_val_loss = avg_val_loss  # Update the best validation loss
-                    best_model_path = os.path.join('best_model', 'best_model.pt')  # Path to save the best model
-                    if not os.path.exists('best_model'):
-                        os.makedirs('best_model')  # Create the directory if it doesn't exist
+                    best_model_dir = os.path.join(log_dir, 'best_model')  
+                    if not os.path.exists(best_model_dir):
+                        os.makedirs(best_model_dir) 
                     # Save the best model
                     torch.save({
                         'config': config,
@@ -202,8 +213,10 @@ if __name__ == '__main__':
                         'scheduler_local': scheduler_local.state_dict(),
                         'iteration': it,
                         'avg_val_loss': avg_val_loss,
-                    }, best_model_path)
+                    }, os.path.join(best_model_dir , 'best_model.pt'))
                     logger.info(f'New best model saved with loss {avg_val_loss}')
+
+                    print(f'best_model_path: {os.path.join(best_model_dir , "best_model.pt")}')
 
     except KeyboardInterrupt:
         logger.info('Terminating...')

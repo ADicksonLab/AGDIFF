@@ -7,7 +7,7 @@ import numpy as np
 from numpy import pi as PI
 from tqdm.auto import tqdm
 
-from utils.chem import BOND_TYPES
+from agdiff.utils.chem import BOND_TYPES
 from ..common import MultiLayerPerceptron, assemble_atom_pair_feature, generate_symmetric_edge_noise, extend_graph_order_radius
 from ..encoder import SchNetEncoder, GINEncoder, get_edge_encoder
 from ..geometry import get_distance, get_angle, get_dihedral, eq_transform
