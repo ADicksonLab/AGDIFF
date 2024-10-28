@@ -125,3 +125,10 @@ class CovMatEvaluator(object):
             'MatchingP': matp_scores
         })
         return results
+
+    def close(self):
+        """Ensure that the pool is properly closed and joined."""
+        if self.pool:
+            self.pool.close()
+            self.pool.join()
+

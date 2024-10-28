@@ -1,4 +1,3 @@
-# coding=utf-8
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,7 +6,7 @@ from torch_scatter import scatter_mean, scatter_add, scatter_max
 from torch_sparse import coalesce
 from torch_geometric.utils import to_dense_adj, dense_to_sparse
 
-from utils.chem import BOND_TYPES
+from agdiff.utils.chem import BOND_TYPES
 
 
 class MeanReadout(nn.Module):

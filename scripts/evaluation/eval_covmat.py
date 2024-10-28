@@ -2,9 +2,12 @@ import os
 import argparse
 import pickle
 import torch
-from utils.datasets import PackedConformationDataset
-from utils.evaluation.covmat import CovMatEvaluator, print_covmat_results
-from utils.misc import *
+from agdiff.utils.datasets import PackedConformationDataset
+from agdiff.utils.evaluation.covmat import CovMatEvaluator , print_covmat_results
+from agdiff.utils.misc import *
+import multiprocessing
+multiprocessing.set_start_method('spawn', force=True)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -31,15 +34,23 @@ if __name__ == '__main__':
         ratio = args.ratio,
         print_fn=logger.info,
     )
+    
+
     results = evaluator(
-        packed_data_list = list(packed_dataset),
-        start_idx = args.start_idx,
+    packed_data_list = list(packed_dataset),
+    start_idx = args.start_idx,
     )
+    evaluator.close()
+
     df = print_covmat_results(results, print_fn=logger.info)
 
     # Save results
-    csv_fn = args.path[:-4] + '_covmat.csv'
+    csv_fn = os.path.join(args.path[:-4] + '_covmat.csv')
+    print(f'csv_fn , {csv_fn}')
     results_fn = args.path[:-4] + '_covmat.pkl'
+
+    print(f'reseults_fn: {results_fn}')
+
     df.to_csv(csv_fn)
     with open(results_fn, 'wb') as f:
         pickle.dump(results, f)

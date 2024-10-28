@@ -7,16 +7,16 @@ import torch
 from glob import glob
 from tqdm.auto import tqdm
 from easydict import EasyDict
-
-from models.epsnet import *
-from utils.datasets import *
-from utils.transforms import *
-from utils.misc import *
-from models.common import _extend_graph_order
 from rdkit.Chem import AllChem
 import random
 
-from utils.chem import BOND_TYPES
+from agdiff.models.epsnet import *
+from agdiff.utils.datasets import *
+from agdiff.utils.transforms import *
+from agdiff.utils.misc import *
+from agdiff.models.common import _extend_graph_order
+from agdiff.utils.chem import BOND_TYPES
+
 
 def rdmol_to_data(mol:Mol, smiles=None):
     """
@@ -156,7 +156,11 @@ def calc_rmsd(traj_id, dcd_dir,pdb_path, output_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    description='Run sampling from a trained model.',
+    usage='%(prog)s <ckpt> <config> <pdb_path> [--save_traj] [other options]'
     parser.add_argument('ckpt', type=str, help='path for loading the checkpoint')
+    parser.add_argument('config' , type = str , help='path for config .yml file')
+    parser.add_argument('pdb_path' , type = str , help='path for pdb file')
     parser.add_argument('--save_traj', action='store_true', default=True,
                     help='whether store the whole trajectory for sampling')
     parser.add_argument('--resume', type=str, default=None)
@@ -166,7 +170,7 @@ if __name__ == '__main__':
     parser.add_argument('--out_dir', type=str, default=None)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--clip', type=float, default=1000.0)
-    parser.add_argument('--n_steps', type=int, default=5000,
+    parser.add_argument('--n_steps', type=int, default=5,
                     help='sampling num steps; for DSM framework, this means num steps for each noise scale')
     parser.add_argument('--global_start_sigma', type=float, default=0.5,
                     help='enable global gradients only when noise is low')
@@ -181,8 +185,9 @@ if __name__ == '__main__':
 
     # Load checkpoint
     ckpt = torch.load(args.ckpt)
-    config_path = 'configs/qm9_default.yml' # you may change config_path 
-    with open(config_path, 'r') as f:
+    pdb_path = args.pdb_path
+ 
+    with open(args.config, 'r') as f:
         config = EasyDict(yaml.safe_load(f))
     seed_random = random.randint(0, 1000000)
     print("Running in SEED: ", seed_random)
@@ -190,7 +195,11 @@ if __name__ == '__main__':
     log_dir = os.path.dirname(os.path.dirname(args.ckpt))
 
     # Logging
-    output_dir = get_new_log_dir(log_dir, 'sample', tag=args.tag)
+    # output_dir = get_new_log_dir(log_dir, 'sample', tag=args.tag)
+    # logger = get_logger('test', output_dir)
+    # logger.info(args)
+
+    output_dir = get_new_log_dir(os.path.join(log_dir,"samples"), 'sample', tag=args.tag)
     logger = get_logger('test', output_dir)
     logger.info(args)
 
@@ -217,7 +226,7 @@ if __name__ == '__main__':
             done_smiles.add(data.smiles)
 
     # Load the PDB file
-    mol = Chem.MolFromPDBFile("alanine_dipeptide.pdb", removeHs=False) 
+    mol = Chem.MolFromPDBFile(pdb_path, removeHs=False) 
 
     # Ensure the molecule is properly loaded and has a conformer
     if mol is not None and mol.GetNumConformers() > 0:
