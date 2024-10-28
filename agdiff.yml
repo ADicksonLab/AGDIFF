@@ -194,7 +194,6 @@ dependencies:
   - pytorch=2.3.1=py3.10_cuda12.1_cudnn8.9.2_0
   - pytorch-cuda=12.1=ha16c6d3_5
   - pytorch-mutex=1.0=cuda
-  #- pytorch-scatter=2.1.2=py310_torch_2.3.0_cu121
   - pytz=2024.1=pyhd8ed1ab_0
   - pyyaml=6.0.1=py310h2372a71_1
   - pyzmq=26.2.0=py310h71f11fc_2
@@ -297,10 +296,6 @@ dependencies:
       - tensorboard-data-server==0.7.2
       - threadpoolctl==3.5.0
       - tomli==2.0.2
-      # - torch-cluster==1.6.3+pt23cu121
-      # - torch-geometric==2.5.3
-      # - torch-sparse==0.6.18+pt23cu121
-      # - torch-spline-conv==1.2.2+pt23cu121
       - tqdm==4.66.4
       - twine==5.1.1
       - werkzeug==3.0.3
