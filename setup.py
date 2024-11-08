@@ -17,20 +17,7 @@ setup(
     license='MIT',
     packages=find_packages(where='src'),
     package_dir={"": "src"},  
-    install_requires=[
-        'torch>=2.3.1',
-        'torch_geometric>=2.5.3',
-        'torch_scatter>=2.1.2',
-        'torch_sparse>=0.6.18',
-        'numpy>=1.26.4',
-        'pandas>=2.2.2',
-        'tqdm>=4.66.4',
-        'rdkit-pypi>=2022.9.5',
-        'easydict>=1.13',
-        'tensorboard>=2.17.0',
-        'psikit>=0.1',
-        'matplotlib>=3.9.2'
-    ],
+    install_requires=[],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: GPU :: NVIDIA CUDA',
