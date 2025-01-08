@@ -101,7 +101,7 @@ Here `start_idx` and `end_idx` indicate the range of the test set that we want t
 We also provide an example of conformation generation for a specific molecule (alanine dipeptide) in the `examples` folder. To generate conformations for alanine dipeptide, use:
 
 ```bash 
-python examples/test_alanine_dipeptide.py ./logs/path/to/checkpoints/${iter}.pt ./configs/qm9_default.yml 
+python examples/test_alanine_dipeptide.py ./logs/path/to/checkpoints/${iter}.pt ./configs/qm9_default.yml ./examples/alanine_dipeptide.pdb 
 
 ```
 
