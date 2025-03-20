@@ -251,8 +251,10 @@ if __name__ == '__main__':
     else:
         print("Failed to load the molecule or no conformers found.")
     
-    num_refs = 1100 // data.num_nodes # you may change num_refs based on molecule
-    num_samples = args.num_confs(num_refs)
+    #num_refs = 1100 // data.num_nodes # you may change num_refs based on molecule
+    num_refs = 1
+    num_samples = 250
+    # num_samples = args.num_confs(num_refs) 
     print(f'num_refs: {num_refs}')
     print(f'num_samples: {num_samples}')
     data_input = data.clone()
