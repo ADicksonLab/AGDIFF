@@ -307,7 +307,7 @@ class DualEncoderEpsNetwork(nn.Module):
 
 
     def langevin_dynamics_sample_diffusion(self, atom_type, pos_init, bond_index, bond_type, batch, num_graphs, extend_order, extend_radius=True, 
-                                 n_steps=100, step_lr=0.0000010, clip=1000, clip_local=None, clip_pos=None, min_sigma=0,
+                                 n_steps=5000, step_lr=0.0000010, clip=1000, clip_local=None, clip_pos=None, min_sigma=0,
                                  global_start_sigma=float('inf'), w_global=0.2, w_reg=1.0, **kwargs):
 
         def compute_alpha(beta, t):
