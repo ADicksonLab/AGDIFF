@@ -9,6 +9,8 @@ from tqdm.auto import tqdm
 from easydict import EasyDict
 from rdkit.Chem import AllChem
 import random
+import numpy as np
+import mdtraj as mdj
 
 from agdiff.models.epsnet import *
 from agdiff.utils.datasets import *
@@ -18,7 +20,7 @@ from agdiff.models.common import _extend_graph_order
 from agdiff.utils.chem import BOND_TYPES
 
 
-def rdmol_to_data(mol:Mol, smiles=None):
+def rdmol_to_data(mol:Mol, pdb_path:str,  smiles=None ):
     """
     Converts a Mol object to torch_geometric.data.Data object
 
@@ -68,9 +70,10 @@ def rdmol_to_data(mol:Mol, smiles=None):
 
     if smiles is None:
         smiles = Chem.MolToSmiles(mol)
-
+    
+    pos_ref = torch.tensor(mdj.load(pdb_path).xyz).squeeze(0)  # Make sure the PDB file has the right reference coordinates in case you wanna evaluate samples based on the COV and MAT metrics.
     data = Data(atom_type=z, pos=pos, edge_index=edge_index, edge_type=edge_type,
-                rdmol=copy.deepcopy(mol), smiles=smiles)
+                rdmol=copy.deepcopy(mol), smiles=smiles , pos_ref = pos_ref)
 
     return data
 
@@ -161,8 +164,8 @@ if __name__ == '__main__':
     parser.add_argument('ckpt', type=str, help='path for loading the checkpoint')
     parser.add_argument('config' , type = str , help='path for config .yml file')
     parser.add_argument('pdb_path' , type = str , help='path for pdb file')
-    parser.add_argument('--save_traj', action='store_true', default=True,
-                    help='whether store the whole trajectory for sampling')
+    parser.add_argument('--save_traj', action='store_true', default=False, # Make sure to dont save the whole trajectory in case you wanna evaluate the samples based on the COV and MAT metrics, or you can save the trajs in output with a different variable rather than pos_gen. 
+                    help='whether store the whole trajectory for sampling') 
     parser.add_argument('--resume', type=str, default=None)
     parser.add_argument('--tag', type=str, default='')
     parser.add_argument('--num_confs', type=num_confs, default=num_confs('5x'))
@@ -170,7 +173,7 @@ if __name__ == '__main__':
     parser.add_argument('--out_dir', type=str, default=None)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--clip', type=float, default=1000.0)
-    parser.add_argument('--n_steps', type=int, default=5,
+    parser.add_argument('--n_steps', type=int, default=5000,
                     help='sampling num steps; for DSM framework, this means num steps for each noise scale')
     parser.add_argument('--global_start_sigma', type=float, default=0.5,
                     help='enable global gradients only when noise is low')
@@ -233,27 +236,26 @@ if __name__ == '__main__':
         AllChem.Compute2DCoords(mol)
         
         # Use the rdmol_to_data function
-        data_input = rdmol_to_data(mol)
+        data = rdmol_to_data(mol , pdb_path)
 
         # Example usage
-        num_nodes = data_input.num_nodes
-        edge_index = data_input.edge_index
-        edge_type = data_input.edge_type
+        num_nodes = data.num_nodes
+        edge_index = data.edge_index
+        edge_type = data.edge_type
 
         new_edge_index, new_edge_type = _extend_graph_order(num_nodes, edge_index, edge_type, order=3)
 
         # Update the data object with extended edges
-        data_input.edge_index = new_edge_index
-        data_input.edge_type = new_edge_type
+        data.edge_index = new_edge_index
+        data.edge_type = new_edge_type
     else:
         print("Failed to load the molecule or no conformers found.")
-
     
-    num_refs = 1100 // data_input.num_nodes # you may change num_refs based on molecule
+    num_refs = 1100 // data.num_nodes # you may change num_refs based on molecule
     num_samples = args.num_confs(num_refs)
     print(f'num_refs: {num_refs}')
     print(f'num_samples: {num_samples}')
-
+    data_input = data.clone()
     data_input['pos_ref'] = None
     batch = repeat_data(data_input, num_samples).to(args.device)
 
@@ -279,11 +281,16 @@ if __name__ == '__main__':
     )
     pos_gen = pos_gen.cpu()
     if args.save_traj:
-        data_input.pos_gen = torch.stack(pos_gen_traj)
+        print('here in save_traj')
+        print(f'pos_gen.shape: {np.shape(pos_gen)}')
+        print(f'pos_gen_traj.shape: {np.shape(pos_gen_traj)}')
+        data.pos_gen = torch.stack(pos_gen_traj)
     else:
-        data_input.pos_gen = pos_gen
-    results.append(data_input)
-    done_smiles.add(data_input.smiles)
+        data.pos_gen = pos_gen
+      
+    results.append(data)
+    print(f'results: {results}')
+    done_smiles.add(data.smiles)
 
     save_path = os.path.join(output_dir, 'sample.pkl')
     logger.info('Saving samples to: %s' % save_path)
