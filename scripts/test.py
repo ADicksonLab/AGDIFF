@@ -38,7 +38,7 @@ if __name__ == '__main__':
     parser.add_argument('--out_dir', type=str, default=None)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--clip', type=float, default=1000.0)
-    parser.add_argument('--n_steps', type=int, default=2,
+    parser.add_argument('--n_steps', type=int, default=5000,
                     help='sampling num steps; for DSM framework, this means num steps for each noise scale')
     parser.add_argument('--global_start_sigma', type=float, default=0.5,
                     help='enable global gradients only when noise is low')
