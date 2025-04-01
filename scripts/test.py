@@ -27,7 +27,7 @@ if __name__ == '__main__':
     usage='%(prog)s <ckpt> <config> [--save_traj] [other options]'
     parser.add_argument('ckpt', type=str, help='path for loading the checkpoint')
     parser.add_argument('config' , type = str , help='path for config .yml file')
-    parser.add_argument('--save_traj', action='store_true', default=True,
+    parser.add_argument('--save_traj', action='store_true', default=False,
                     help='whether store the whole trajectory for sampling')
     parser.add_argument('--resume', type=str, default=None)
     parser.add_argument('--tag', type=str, default='')
