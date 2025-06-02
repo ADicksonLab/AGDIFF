@@ -46,8 +46,16 @@ class MultiLayerPerceptron(nn.Module):
     Enhanced multi-layer Perceptron with optional attention mechanisms,
     residual connections, and dropout.
     """
-    def __init__(self, input_dim, hidden_dims, activation="gelu", dropout=0.0,
-                 use_attention=False, use_residual=False):
+
+    def __init__(
+        self,
+        input_dim,
+        hidden_dims,
+        activation="gelu",
+        dropout=0.0,
+        use_attention=False,
+        use_residual=False,
+    ):
         super(MultiLayerPerceptron, self).__init__()
 
         self.dims = [input_dim] + hidden_dims
@@ -71,12 +79,14 @@ class MultiLayerPerceptron(nn.Module):
             self.layers.append(nn.Linear(self.dims[i], self.dims[i + 1]))
             if use_attention:
                 # Attention layer to calculate scores for each feature
-                self.attention_layers.append(nn.Linear(self.dims[i + 1], self.dims[i + 1]))
+                self.attention_layers.append(
+                    nn.Linear(self.dims[i + 1], self.dims[i + 1])
+                )
 
     def forward(self, input):
         x = input
         for i, layer in enumerate(self.layers):
-            #previous_x = x  # Store previous layer output for residual connection
+            # previous_x = x  # Store previous layer output for residual connection
             x = layer(x)
 
             if i < len(self.layers) - 1:
@@ -95,9 +105,9 @@ class MultiLayerPerceptron(nn.Module):
 
 def assemble_atom_pair_feature(node_attr, edge_index, edge_attr):
     h_row, h_col = node_attr[edge_index[0]], node_attr[edge_index[1]]
-    h_pair = torch.cat([h_row*h_col, edge_attr], dim=-1)    # (E, 2H)
+    h_pair = torch.cat([h_row * h_col, edge_attr], dim=-1)  # (E, 2H)
     return h_pair
-    
+
 
 def generate_symmetric_edge_noise(num_nodes_per_graph, edge_index, edge2graph, device):
     num_cum_nodes = num_nodes_per_graph.cumsum(0)  # (G, )
@@ -149,15 +159,17 @@ def _extend_graph_order(num_nodes, edge_index, edge_type, order=3):
             Following attributes will be added to the data object:
               - bond_edge_index:  Original edge_index.
         """
-        adj_mats = [torch.eye(adj.size(0), dtype=torch.long, device=adj.device), \
-                    binarize(adj + torch.eye(adj.size(0), dtype=torch.long, device=adj.device))]
+        adj_mats = [
+            torch.eye(adj.size(0), dtype=torch.long, device=adj.device),
+            binarize(adj + torch.eye(adj.size(0), dtype=torch.long, device=adj.device)),
+        ]
 
-        for i in range(2, order+1):
-            adj_mats.append(binarize(adj_mats[i-1] @ adj_mats[1]))
+        for i in range(2, order + 1):
+            adj_mats.append(binarize(adj_mats[i - 1] @ adj_mats[1]))
         order_mat = torch.zeros_like(adj)
 
-        for i in range(1, order+1):
-            order_mat += (adj_mats[i] - adj_mats[i-1]) * i
+        for i in range(1, order + 1):
+            order_mat += (adj_mats[i] - adj_mats[i - 1]) * i
 
         return order_mat
 
@@ -167,8 +179,10 @@ def _extend_graph_order(num_nodes, edge_index, edge_type, order=3):
     adj = to_dense_adj(edge_index).squeeze(0)
     adj_order = get_higher_order_adj_matrix(adj, order)  # (N, N)
 
-    type_mat = to_dense_adj(edge_index, edge_attr=edge_type).squeeze(0)   # (N, N)
-    type_highorder = torch.where(adj_order > 1, num_types + adj_order - 1, torch.zeros_like(adj_order))
+    type_mat = to_dense_adj(edge_index, edge_attr=edge_type).squeeze(0)  # (N, N)
+    type_highorder = torch.where(
+        adj_order > 1, num_types + adj_order - 1, torch.zeros_like(adj_order)
+    )
     assert (type_mat * type_highorder == 0).all()
     type_new = type_mat + type_highorder
 
@@ -176,37 +190,37 @@ def _extend_graph_order(num_nodes, edge_index, edge_type, order=3):
     _, edge_order = dense_to_sparse(adj_order)
 
     # data.bond_edge_index = data.edge_index  # Save original edges
-    new_edge_index, new_edge_type = coalesce(new_edge_index, new_edge_type.long(), N, N) # modify data
-    
+    new_edge_index, new_edge_type = coalesce(
+        new_edge_index, new_edge_type.long(), N, N
+    )  # modify data
+
     # [Note] This is not necessary
     # data.is_bond = (data.edge_type < num_types)
 
-    # [Note] In earlier versions, `edge_order` attribute will be added. 
+    # [Note] In earlier versions, `edge_order` attribute will be added.
     #         However, it doesn't seem to be necessary anymore so I removed it.
     # edge_index_1, data.edge_order = coalesce(new_edge_index, edge_order.long(), N, N) # modify data
     # assert (data.edge_index == edge_index_1).all()
 
     return new_edge_index, new_edge_type
-    
 
-def _extend_to_radius_graph(pos, edge_index, edge_type, cutoff, batch, unspecified_type_number=0):
+
+def _extend_to_radius_graph(
+    pos, edge_index, edge_type, cutoff, batch, unspecified_type_number=0
+):
 
     assert edge_type.dim() == 1
     N = pos.size(0)
 
-    bgraph_adj = torch.sparse.LongTensor(
-        edge_index, 
-        edge_type, 
-        torch.Size([N, N])
-    )
+    bgraph_adj = torch.sparse.LongTensor(edge_index, edge_type, torch.Size([N, N]))
 
-    
-    rgraph_edge_index = radius_graph(pos, r=cutoff, batch=batch)    # (2, E_r)
+    rgraph_edge_index = radius_graph(pos, r=cutoff, batch=batch)  # (2, E_r)
 
     rgraph_adj = torch.sparse.LongTensor(
-        rgraph_edge_index, 
-        torch.ones(rgraph_edge_index.size(1)).long().to(pos.device) * unspecified_type_number,
-        torch.Size([N, N])
+        rgraph_edge_index,
+        torch.ones(rgraph_edge_index.size(1)).long().to(pos.device)
+        * unspecified_type_number,
+        torch.Size([N, N]),
     )
 
     composed_adj = (bgraph_adj + rgraph_adj).coalesce()  # Sparse (N, N, T)
@@ -215,38 +229,49 @@ def _extend_to_radius_graph(pos, edge_index, edge_type, cutoff, batch, unspecifi
 
     new_edge_index = composed_adj.indices()
     new_edge_type = composed_adj.values().long()
-    
+
     return new_edge_index, new_edge_type
 
 
-def extend_graph_order_radius(num_nodes, pos, edge_index, edge_type, batch, order=3, cutoff=10.0, 
-                              extend_order=True, extend_radius=True):
-    
+def extend_graph_order_radius(
+    num_nodes,
+    pos,
+    edge_index,
+    edge_type,
+    batch,
+    order=3,
+    cutoff=10.0,
+    extend_order=True,
+    extend_radius=True,
+):
+
     if extend_order:
         edge_index, edge_type = _extend_graph_order(
-            num_nodes=num_nodes, 
-            edge_index=edge_index, 
-            edge_type=edge_type, order=order
+            num_nodes=num_nodes, edge_index=edge_index, edge_type=edge_type, order=order
         )
         # edge_index_order = edge_index
         # edge_type_order = edge_type
 
     if extend_radius:
         edge_index, edge_type = _extend_to_radius_graph(
-            pos=pos, 
-            edge_index=edge_index, 
-            edge_type=edge_type, 
-            cutoff=cutoff, 
-            batch=batch
+            pos=pos,
+            edge_index=edge_index,
+            edge_type=edge_type,
+            cutoff=cutoff,
+            batch=batch,
         )
-    
+
     return edge_index, edge_type
 
 
 def coarse_grain(pos, node_attr, subgraph_index, batch):
-    cluster_pos = scatter_mean(pos, index=subgraph_index, dim=0)    # (num_clusters, 3)
-    cluster_attr = scatter_add(node_attr, index=subgraph_index, dim=0)  # (num_clusters, H)
-    cluster_batch, _ = scatter_max(batch, index=subgraph_index, dim=0) # (num_clusters, )
+    cluster_pos = scatter_mean(pos, index=subgraph_index, dim=0)  # (num_clusters, 3)
+    cluster_attr = scatter_add(
+        node_attr, index=subgraph_index, dim=0
+    )  # (num_clusters, H)
+    cluster_batch, _ = scatter_max(
+        batch, index=subgraph_index, dim=0
+    )  # (num_clusters, )
 
     return cluster_pos, cluster_attr, cluster_batch
 
@@ -263,7 +288,7 @@ def get_complete_graph(natoms):
         edge_index: (2, N_1 + N_2 + ... + N_{B-1}), where N_i is the number of nodes of the i-th graph.
         num_edges:  (B, ), number of edges per graph.
     """
-    natoms_sqr = (natoms ** 2).long()
+    natoms_sqr = (natoms**2).long()
     num_atom_pairs = torch.sum(natoms_sqr)
     natoms_expand = torch.repeat_interleave(natoms, natoms_sqr)
 
@@ -273,7 +298,9 @@ def get_complete_graph(natoms):
     index_sqr_offset = torch.cumsum(natoms_sqr, dim=0) - natoms_sqr
     index_sqr_offset = torch.repeat_interleave(index_sqr_offset, natoms_sqr)
 
-    atom_count_sqr = torch.arange(num_atom_pairs, device=num_atom_pairs.device) - index_sqr_offset
+    atom_count_sqr = (
+        torch.arange(num_atom_pairs, device=num_atom_pairs.device) - index_sqr_offset
+    )
 
     index1 = (atom_count_sqr // natoms_expand).long() + index_offset_expand
     index2 = (atom_count_sqr % natoms_expand).long() + index_offset_expand
@@ -281,6 +308,6 @@ def get_complete_graph(natoms):
     mask = torch.logical_not(index1 == index2)
     edge_index = edge_index[:, mask]
 
-    num_edges = natoms_sqr - natoms # Number of edges per graph
+    num_edges = natoms_sqr - natoms  # Number of edges per graph
 
     return edge_index, num_edges
