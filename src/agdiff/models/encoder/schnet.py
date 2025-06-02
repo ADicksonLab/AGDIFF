@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch.nn import Embedding, Linear, Module, ModuleList, Sequential
 from torch.nn.functional import softmax
 from torch_geometric.data import Data
-from torch_geometric.nn import MessagePassing, radius_graph
+from torch_geometric.nn import MessagePassing  # , radius_graph
 from torch_geometric.utils import dense_to_sparse, to_dense_adj
 from torch_sparse import coalesce
 
@@ -28,7 +28,6 @@ class GaussianSmearing(torch.nn.Module):
 
 
 class AsymmetricSineCosineSmearing(Module):
-
     def __init__(self, num_basis=50):
         super().__init__()
         num_basis_k = num_basis // 2
@@ -53,7 +52,6 @@ class AsymmetricSineCosineSmearing(Module):
 
 
 class SymmetricCosineSmearing(Module):
-
     def __init__(self, num_basis=50):
         super().__init__()
         self.register_buffer("freq_k", torch.arange(1, num_basis + 1).float())

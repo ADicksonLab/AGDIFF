@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Embedding, Linear, Module, ModuleList, Sequential
 from torch_geometric.data import Data
-from torch_geometric.nn import MessagePassing, radius_graph
+from torch_geometric.nn import MessagePassing  # , radius_graph
 from torch_geometric.utils import dense_to_sparse, to_dense_adj
 from torch_sparse import coalesce
 
@@ -15,7 +15,6 @@ from ..common import MeanReadout, MultiLayerPerceptron, SumReadout
 
 
 class GaussianSmearingEdgeEncoder(Module):
-
     def __init__(self, num_gaussians=64, cutoff=10.0):
         super().__init__()
         # self.NUM_BOND_TYPES = 22

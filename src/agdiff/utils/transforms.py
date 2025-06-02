@@ -10,7 +10,6 @@ from .chem import BOND_NAMES, BOND_TYPES, get_atom_symbol
 
 
 class AddHigherOrderEdges(object):
-
     def __init__(self, order, num_types=len(BOND_TYPES)):
         super().__init__()
         self.order = order
@@ -72,9 +71,7 @@ class AddHigherOrderEdges(object):
 
 
 class AddEdgeLength(object):
-
     def __call__(self, data: Data):
-
         pos = data.pos
         row, col = data.edge_index
         d = (pos[row] - pos[col]).norm(dim=-1).unsqueeze(-1)  # (num_edge, 1)
@@ -92,7 +89,6 @@ class AddPlaceHolder(object):
 
 
 class AddEdgeName(object):
-
     def __init__(self, asymmetric=True):
         super().__init__()
         self.bonds = copy.deepcopy(BOND_NAMES)
@@ -128,7 +124,6 @@ class AddEdgeName(object):
 
 
 class AddAngleDihedral(object):
-
     def __init__(self):
         super().__init__()
 
@@ -187,7 +182,6 @@ class AddAngleDihedral(object):
 
 
 class CountNodesPerGraph(object):
-
     def __init__(self) -> None:
         super().__init__()
 

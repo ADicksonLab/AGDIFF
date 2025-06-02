@@ -23,7 +23,6 @@ RDLogger.DisableLog("rdApp.*")
 
 
 def prepare_pdb2(scn_dir, data_path):
-
     # step 1: filter and save pdb file.
     train_data = []
     cnt_fail = 0
@@ -87,7 +86,6 @@ def prepare_pdb2(scn_dir, data_path):
 
 
 def prepare_pdblarge(scn_dir, data_path):
-
     # step 1: filter and save pdb file.
     train_data = []
     cnt_fail = 0
@@ -107,7 +105,6 @@ def prepare_pdblarge(scn_dir, data_path):
             cnt_seg += 1
             mask_ = [1 if _ == "+" else 0 for _ in mask[i]]
             if sum(mask_) < 400:
-
                 cnt_success += 1
                 seq = raw_data["seq"][i]
                 crd = raw_data["crd"][i]
@@ -139,7 +136,6 @@ def prepare_pdblarge(scn_dir, data_path):
 
 
 def prepare_pdb_valtest(scn_dir, data_path):
-
     # step 1: filter and save pdb file.
     val_data = []
     test_data = []
@@ -173,7 +169,6 @@ def prepare_pdb_valtest(scn_dir, data_path):
             if True:
                 mask_ = [1 if _ == "+" else 0 for _ in mask[i]]
                 if sum(mask_) < 400:
-
                     seq = raw_data["seq"][i]
                     crd = raw_data["crd"][i]
                     name = raw_data["ids"][i]
@@ -381,7 +376,6 @@ def rdmol_to_data(mol: Mol, smiles=None, data_cls=Data):
 
 
 class MolClusterData(Data):
-
     def __inc__(self, key, value):
         if key == "subgraph_index":
             return self.subgraph_index.max().item() + 1
@@ -441,7 +435,6 @@ def preprocess_iso17_dataset(base_path):
 def preprocess_GEOM_dataset(
     base_path, dataset_name, max_conf=5, train_size=0.8, max_size=9999999999, seed=None
 ):
-
     # set random seed
     if seed is None:
         seed = 2021
@@ -495,7 +488,6 @@ def preprocess_GEOM_dataset(
     bad_case = 0
 
     for i in tqdm(range(len(pickle_path_list))):
-
         with open(os.path.join(base_path, pickle_path_list[i]), "rb") as fin:
             mol = pickle.load(fin)
 
@@ -647,7 +639,6 @@ def preprocess_GEOM_dataset_with_fixed_num_conf(
     bad_case = 0
 
     for i in tqdm(range(len(pickle_path_list))):
-
         with open(os.path.join(base_path, pickle_path_list[i]), "rb") as fin:
             mol = pickle.load(fin)
 
@@ -785,7 +776,6 @@ def get_test_set_with_large_num_conf(
     num_valid_conf = 0
 
     for i in tqdm(range(len(pickle_path_list))):
-
         with open(os.path.join(base_path, pickle_path_list[i]), "rb") as fin:
             mol = pickle.load(fin)
 
@@ -826,7 +816,6 @@ def get_test_set_with_large_num_conf(
 
 
 class ConformationDataset(Dataset):
-
     def __init__(self, path, transform=None):
         super().__init__()
         with open(path, "rb") as f:
@@ -836,7 +825,6 @@ class ConformationDataset(Dataset):
         self.edge_types = self._edge_types()
 
     def get(self, idx):
-
         data = self.data[idx].clone()
         if self.transform is not None:
             data = self.transform(data)
@@ -861,7 +849,6 @@ class ConformationDataset(Dataset):
 
 
 class SidechainConformationDataset(ConformationDataset):
-
     def __init__(
         self, path, transform=None, cutoff=10.0, max_residue=5000, fix_subgraph=False
     ):
@@ -871,7 +858,6 @@ class SidechainConformationDataset(ConformationDataset):
         self.fix_subgraph = fix_subgraph
 
     def __getitem__(self, idx):
-
         data = self.data[idx].clone()
         """ Subgraph sampling
             1. sampling an atom from the backbone (residue)
@@ -931,7 +917,6 @@ class SidechainConformationDataset(ConformationDataset):
 
     @staticmethod
     def collate_fn(data):
-
         batch = [_ for _ in data if _ is not None]
         return Batch.from_data_list(batch)
 
@@ -970,7 +955,6 @@ def accumulate_grad_from_subgraph(
     is_covered = torch.zeros(pos.size(0), device=pos.deivce).bool()
     is_alpha_and_uncovered = is_alpha & (~is_covered)
     while is_alpha_and_uncovered.sum().item() != 0:
-
         alpha_index = dummy_index[is_alpha_and_uncovered]
         center_atom_index = alpha_index[
             torch.randint(low=0, high=alpha_index.size(0), size=(1,))
@@ -1018,7 +1002,6 @@ def accumulate_grad_from_subgraph(
 
 
 class PackedConformationDataset(ConformationDataset):
-
     def __init__(self, path, transform=None):
         super().__init__(path, transform)
         # k:v = idx: data_obj
@@ -1061,7 +1044,6 @@ class PackedConformationDataset(ConformationDataset):
         self.new_data = new_data
 
     def __getitem__(self, idx):
-
         data = self.new_data[idx].clone()
         if self.transform is not None:
             data = self.transform(data)

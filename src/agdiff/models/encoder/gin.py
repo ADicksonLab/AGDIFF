@@ -12,7 +12,6 @@ from ..common import MeanReadout, MultiLayerPerceptron, SumReadout
 
 
 class GINEConv(MessagePassing):
-
     def __init__(
         self,
         nn: Callable,
@@ -47,11 +46,28 @@ class GINEConv(MessagePassing):
             x: OptPairTensor = (x, x)
 
         # Node and edge feature dimensionalites need to match.
+
+        # print(f'inside GIN, edge_index.type; {edge_index.dtype}')
+        # if isinstance(edge_index, Tensor):
+        #     assert edge_attr is not None
+        #     assert x[0].size(-1) == edge_attr.size(-1)
+        # elif isinstance(edge_index, SparseTensor):
+        #     assert x[0].size(-1) == edge_index.size(-1)
+
         if isinstance(edge_index, Tensor):
-            assert edge_attr is not None
-            assert x[0].size(-1) == edge_attr.size(-1)
+            torch._assert(
+                edge_attr is not None,
+                "edge_attr must not be None when edge_index is a Tensor",
+            )
+            torch._assert(
+                x[0].size(-1) == edge_attr.size(-1),
+                "The feature dimensions of x[0] and edge_attr must match",
+            )
         elif isinstance(edge_index, SparseTensor):
-            assert x[0].size(-1) == edge_index.size(-1)
+            torch._assert(
+                x[0].size(-1) == edge_index.size(-1),
+                "The feature dimensions of x[0] and edge_index must match",
+            )
 
         # propagate_type: (x: OptPairTensor, edge_attr: OptTensor)
         out = self.propagate(edge_index, x=x, edge_attr=edge_attr, size=size)
@@ -73,6 +89,7 @@ class GINEConv(MessagePassing):
 
 
 class GINEncoder(torch.nn.Module):
+    @torch.jit.script_if_tracing
     def __init__(
         self,
         hidden_dim,
@@ -133,8 +150,12 @@ class GINEncoder(torch.nn.Module):
 
             if conv_idx < len(self.convs) - 1 and self.activation is not None:
                 hidden = self.activation(hidden)
-            assert hidden.shape == conv_input.shape
-            if self.short_cut and hidden.shape == conv_input.shape:
+
+            # assert hidden.shape == conv_input.shape
+            # if self.short_cut and hidden.shape == conv_input.shape:
+            #     hidden = hidden + conv_input  # Residual connection
+
+            if self.short_cut:  # trace
                 hidden = hidden + conv_input  # Residual connection
 
             hiddens.append(hidden)

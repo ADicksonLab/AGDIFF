@@ -1,3 +1,5 @@
+from typing import List, Optional, Union
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -132,6 +134,22 @@ def generate_symmetric_edge_noise(num_nodes_per_graph, edge_index, edge2graph, d
     return d_noise
 
 
+def shapes_to_tensor(
+    x: List[Union[int, torch.Tensor]], device: Optional[torch.device] = None
+) -> torch.Tensor:
+    if torch.jit.is_scripting():
+        return torch.as_tensor(x, device=device)
+    if torch.jit.is_tracing():
+        assert all(
+            isinstance(t, torch.Tensor) for t in x
+        ), "Shape should be tensor during tracing!"
+        ret = torch.stack(x)
+        if ret.device != device:
+            ret = ret.to(device=device)
+        return ret
+    return torch.as_tensor(x, device=device)
+
+
 def _extend_graph_order(num_nodes, edge_index, edge_type, order=3):
     """
     Args:
@@ -183,7 +201,11 @@ def _extend_graph_order(num_nodes, edge_index, edge_type, order=3):
     type_highorder = torch.where(
         adj_order > 1, num_types + adj_order - 1, torch.zeros_like(adj_order)
     )
-    assert (type_mat * type_highorder == 0).all()
+    # assert (type_mat * type_highorder == 0).all()
+    torch._assert(
+        (type_mat * type_highorder == 0).all(), "type_mat and type_highorder overlap"
+    )
+
     type_new = type_mat + type_highorder
 
     new_edge_index, new_edge_type = dense_to_sparse(type_new)
@@ -205,27 +227,39 @@ def _extend_graph_order(num_nodes, edge_index, edge_type, order=3):
     return new_edge_index, new_edge_type
 
 
+@torch.jit.script_if_tracing
 def _extend_to_radius_graph(
-    pos, edge_index, edge_type, cutoff, batch, unspecified_type_number=0
+    pos: torch.Tensor,
+    edge_index: torch.Tensor,
+    edge_type: torch.Tensor,
+    cutoff: float,
+    batch: torch.Tensor,
+    unspecified_type_number: int = 0,
 ):
+    # assert edge_type.dim() == 1
 
-    assert edge_type.dim() == 1
     N = pos.size(0)
 
-    bgraph_adj = torch.sparse.LongTensor(edge_index, edge_type, torch.Size([N, N]))
+    bgraph_adj = torch.sparse_coo_tensor(
+        indices=edge_index,
+        values=edge_type,
+        size=torch.Size([N, N]),
+        dtype=torch.long,
+        device=edge_index.device,
+    )
 
-    rgraph_edge_index = radius_graph(pos, r=cutoff, batch=batch)  # (2, E_r)
+    rgraph_edge_index = radius_graph(pos, r=cutoff, batch=batch)
 
-    rgraph_adj = torch.sparse.LongTensor(
-        rgraph_edge_index,
-        torch.ones(rgraph_edge_index.size(1)).long().to(pos.device)
+    rgraph_adj = torch.sparse_coo_tensor(
+        indices=rgraph_edge_index,
+        values=torch.ones(rgraph_edge_index.size(1)).long().to(pos.device)
         * unspecified_type_number,
-        torch.Size([N, N]),
+        size=torch.Size([N, N]),
+        dtype=torch.long,
+        device=edge_index.device,
     )
 
     composed_adj = (bgraph_adj + rgraph_adj).coalesce()  # Sparse (N, N, T)
-    # edge_index = composed_adj.indices()
-    # dist = (pos[edge_index[0]] - pos[edge_index[1]]).norm(dim=-1)
 
     new_edge_index = composed_adj.indices()
     new_edge_type = composed_adj.values().long()
@@ -244,7 +278,6 @@ def extend_graph_order_radius(
     extend_order=True,
     extend_radius=True,
 ):
-
     if extend_order:
         edge_index, edge_type = _extend_graph_order(
             num_nodes=num_nodes, edge_index=edge_index, edge_type=edge_type, order=order

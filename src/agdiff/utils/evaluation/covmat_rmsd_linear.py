@@ -65,7 +65,6 @@ def print_covmat_results(results, print_fn=print):
 
 
 class CovMatEvaluator(object):
-
     def __init__(
         self,
         num_workers=8,

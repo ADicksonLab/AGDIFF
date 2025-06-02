@@ -5,15 +5,19 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from numpy import pi as PI
-from torch import nn
+from torch import Tensor, nn
 from torch_geometric.data import Batch, Data
 from torch_scatter import scatter, scatter_add, scatter_mean
 from tqdm.auto import tqdm
 
 from agdiff.utils.chem import BOND_TYPES
 
-from ..common import (MultiLayerPerceptron, assemble_atom_pair_feature,
-                      extend_graph_order_radius, generate_symmetric_edge_noise)
+from ..common import (
+    MultiLayerPerceptron,
+    assemble_atom_pair_feature,
+    extend_graph_order_radius,
+    generate_symmetric_edge_noise,
+)
 from ..encoder import GINEncoder, SchNetEncoder, get_edge_encoder
 from ..geometry import eq_transform, get_angle, get_dihedral, get_distance
 
@@ -22,41 +26,16 @@ def get_beta_schedule(beta_schedule, *, beta_start, beta_end, num_diffusion_time
     def sigmoid(x):
         return 1 / (np.exp(-x) + 1)
 
-    if beta_schedule == "quad":
-        betas = (
-            np.linspace(
-                beta_start**0.5,
-                beta_end**0.5,
-                num_diffusion_timesteps,
-                dtype=np.float64,
-            )
-            ** 2
-        )
-    elif beta_schedule == "linear":
-        betas = np.linspace(
-            beta_start, beta_end, num_diffusion_timesteps, dtype=np.float64
-        )
-    elif beta_schedule == "const":
-        betas = beta_end * np.ones(num_diffusion_timesteps, dtype=np.float64)
-    elif beta_schedule == "jsd":  # 1/T, 1/(T-1), 1/(T-2), ..., 1
-        betas = 1.0 / np.linspace(
-            num_diffusion_timesteps, 1, num_diffusion_timesteps, dtype=np.float64
-        )
-    elif beta_schedule == "sigmoid":
-        betas = np.linspace(-6, 6, num_diffusion_timesteps)
-        betas = sigmoid(betas) * (beta_end - beta_start) + beta_start
-    else:
-        raise NotImplementedError(beta_schedule)
-    assert betas.shape == (num_diffusion_timesteps,)
+    betas = np.linspace(-6, 6, num_diffusion_timesteps)
+    betas = sigmoid(betas) * (beta_end - beta_start) + beta_start
+    # assert betas.shape == (num_diffusion_timesteps,) # trace
     return betas
 
 
 class DualEncoderEpsNetwork(nn.Module):
-
     def __init__(self, config):
         super().__init__()
         self.config = config
-
         """
         edge_encoder:  Takes both edge type and edge length as input and outputs a vector
         [Note]: node embedding is done in SchNetEncoder
@@ -106,38 +85,23 @@ class DualEncoderEpsNetwork(nn.Module):
         self.model_local = nn.ModuleList(
             [self.edge_encoder_local, self.encoder_local, self.grad_local_dist_mlp]
         )
+        self.model_type = config.type
 
-        self.model_type = config.type  # config.type  # 'diffusion'; 'dsm'
-
-        if self.model_type == "diffusion":
-            # denoising diffusion
-            ## betas
-            betas = get_beta_schedule(
-                beta_schedule=config.beta_schedule,
-                beta_start=config.beta_start,
-                beta_end=config.beta_end,
-                num_diffusion_timesteps=config.num_diffusion_timesteps,
-            )
-            betas = torch.from_numpy(betas).float()
-            self.betas = nn.Parameter(betas, requires_grad=False)
-            ## variances
-            alphas = (1.0 - betas).cumprod(dim=0)
-            self.alphas = nn.Parameter(alphas, requires_grad=False)
-            self.num_timesteps = self.betas.size(0)
-        elif self.model_type == "dsm":
-            # denoising score matching
-            sigmas = torch.tensor(
-                np.exp(
-                    np.linspace(
-                        np.log(config.sigma_begin),
-                        np.log(config.sigma_end),
-                        config.num_noise_level,
-                    )
-                ),
-                dtype=torch.float32,
-            )
-            self.sigmas = nn.Parameter(sigmas, requires_grad=False)  # (num_noise_level)
-            self.num_timesteps = self.sigmas.size(0)  # betas.shape[0]
+        # denoising diffusion
+        ## betas
+        betas = get_beta_schedule(
+            beta_schedule=config.beta_schedule,
+            beta_start=config.beta_start,
+            beta_end=config.beta_end,
+            num_diffusion_timesteps=config.num_diffusion_timesteps,
+        )
+        betas = torch.from_numpy(betas).float()
+        self.betas = nn.Parameter(betas, requires_grad=False)
+        ## variances
+        alphas = (1.0 - betas).cumprod(dim=0)
+        self.alphas = nn.Parameter(alphas, requires_grad=False)
+        sigmas = (1.0 - self.alphas).sqrt() / self.alphas.sqrt()
+        self.num_timesteps = self.betas.size(0)
 
     def forward(
         self,
@@ -149,8 +113,7 @@ class DualEncoderEpsNetwork(nn.Module):
         time_step,
         edge_index=None,
         edge_type=None,
-        edge_length=None,
-        return_edges=False,
+        edge_length=None,  # return_edges=False,  trace
         extend_order=True,
         extend_radius=True,
     ):
@@ -163,27 +126,23 @@ class DualEncoderEpsNetwork(nn.Module):
         """
 
         N = atom_type.size(0)
-        if edge_index is None or edge_type is None or edge_length is None:
-            edge_index, edge_type = extend_graph_order_radius(
-                num_nodes=N,
-                pos=pos,
-                edge_index=bond_index,
-                edge_type=bond_type,
-                batch=batch,
-                order=self.config.edge_order,
-                cutoff=self.config.cutoff,
-                extend_order=extend_order,
-                extend_radius=extend_radius,
-            )
-            edge_length = get_distance(pos, edge_index).unsqueeze(-1)  # (E, 1)
+        # if edge_index is None or edge_type is None or edge_length is None: # trace
+        edge_index, edge_type = extend_graph_order_radius(
+            num_nodes=N,
+            pos=pos,
+            edge_index=bond_index,
+            edge_type=bond_type,
+            batch=batch,
+            order=self.config.edge_order,
+            cutoff=self.config.cutoff,
+            extend_order=extend_order,
+            extend_radius=extend_radius,
+        )
+        edge_length = get_distance(pos, edge_index).unsqueeze(-1)  # (E, 1)
         local_edge_mask = is_local_edge(edge_type)  # (E, )
-
-        if self.model_type == "diffusion":
-            # with the parameterization of NCSNv2
-            # DDPM loss implicit handle the noise variance scale conditioning
-            sigma_edge = torch.ones(
-                size=(edge_index.size(1), 1), device=pos.device
-            )  # (E, 1)
+        sigma_edge = torch.ones(
+            size=(edge_index.size(1), 1), device=pos.device
+        )  # (E, 1)
 
         # Encoding global
         edge_attr_global = self.edge_encoder_global(
@@ -228,60 +187,22 @@ class DualEncoderEpsNetwork(nn.Module):
             edge_index=edge_index[:, local_edge_mask],
             edge_attr=edge_attr_local[local_edge_mask],
         )  # (E_local, 2H)
-        ## Invariant features of edges (bond graph, local)
-        if isinstance(sigma_edge, torch.Tensor):
-            edge_inv_local = self.grad_local_dist_mlp(h_pair_local) * (
-                1.0 / sigma_edge[local_edge_mask]
-            )  # (E_local, 1)
-        else:
-            edge_inv_local = self.grad_local_dist_mlp(h_pair_local) * (
-                1.0 / sigma_edge
-            )  # (E_local, 1)
 
-        if return_edges:
-            return (
-                edge_inv_global,
-                edge_inv_local,
-                edge_index,
-                edge_type,
-                edge_length,
-                local_edge_mask,
-            )
-        else:
-            return edge_inv_global, edge_inv_local
+        ## Invariant features of edges (bond graph, local)
+        edge_inv_local = self.grad_local_dist_mlp(h_pair_local) * (
+            1.0 / sigma_edge[local_edge_mask]
+        )  # (E_local, 1) # trace
+
+        return (
+            edge_inv_global,
+            edge_inv_local,
+            edge_index,
+            edge_type,
+            edge_length,
+            local_edge_mask,
+        )
 
     def get_loss(
-        self,
-        atom_type,
-        pos,
-        bond_index,
-        bond_type,
-        batch,
-        num_nodes_per_graph,
-        num_graphs,
-        anneal_power=2.0,
-        return_unreduced_loss=False,
-        return_unreduced_edge_loss=False,
-        extend_order=True,
-        extend_radius=True,
-    ):
-        if self.model_type == "diffusion":
-            return self.get_loss_diffusion(
-                atom_type,
-                pos,
-                bond_index,
-                bond_type,
-                batch,
-                num_nodes_per_graph,
-                num_graphs,
-                anneal_power,
-                return_unreduced_loss,
-                return_unreduced_edge_loss,
-                extend_order,
-                extend_radius,
-            )
-
-    def get_loss_diffusion(
         self,
         atom_type,
         pos,
@@ -329,7 +250,7 @@ class DualEncoderEpsNetwork(nn.Module):
             bond_type=bond_type,
             batch=batch,
             time_step=time_step,
-            return_edges=True,
+            # return_edges = True, trace
             extend_order=extend_order,
             extend_radius=extend_radius,
         )  # (E_global, 1), (E_local, 1)
@@ -359,6 +280,7 @@ class DualEncoderEpsNetwork(nn.Module):
         edge_inv_global = torch.where(
             global_mask, edge_inv_global, torch.zeros_like(edge_inv_global)
         )
+
         target_pos_global = eq_transform(
             target_d_global, pos_perturbed, edge_index, edge_length
         )
@@ -385,97 +307,37 @@ class DualEncoderEpsNetwork(nn.Module):
 
         # loss for atomic eps regression
         loss = loss_global + loss_local
-        # loss_pos = scatter_add(loss_pos.squeeze(), node2graph)  # (G, 1)
 
-        if return_unreduced_edge_loss:
-            pass
-        elif return_unreduced_loss:
-            return loss, loss_global, loss_local
-        else:
-            return loss
+        return loss, loss_global, loss_local
 
+    # original inference
     def langevin_dynamics_sample(
         self,
-        atom_type,
-        pos_init,
-        bond_index,
-        bond_type,
-        batch,
-        num_graphs,
-        extend_order,
-        extend_radius=True,
-        n_steps=5000,
-        step_lr=0.0000010,
-        clip=1000,
-        clip_local=None,
-        clip_pos=None,
-        min_sigma=0,
-        global_start_sigma=float("inf"),
-        w_global=0.2,
-        w_reg=1.0,
-        **kwargs
+        atom_type: Tensor,
+        pos_init: Tensor,
+        bond_index: Tensor,
+        bond_type: Tensor,
+        batch: Tensor,
+        include_global: Tensor,
     ):
-        if self.model_type == "diffusion":
-            return self.langevin_dynamics_sample_diffusion(
-                atom_type,
-                pos_init,
-                bond_index,
-                bond_type,
-                batch,
-                num_graphs,
-                extend_order,
-                extend_radius,
-                n_steps,
-                step_lr,
-                clip,
-                clip_local,
-                clip_pos,
-                min_sigma,
-                global_start_sigma,
-                w_global,
-                w_reg,
-                sampling_type=kwargs.get("sampling_type", "ddpm_noisy"),
-                eta=kwargs.get("eta", 1.0),
-            )
-
-    def langevin_dynamics_sample_diffusion(
-        self,
-        atom_type,
-        pos_init,
-        bond_index,
-        bond_type,
-        batch,
-        num_graphs,
-        extend_order,
-        extend_radius=True,
-        n_steps=5000,
-        step_lr=0.0000010,
-        clip=1000,
-        clip_local=None,
-        clip_pos=None,
-        min_sigma=0,
-        global_start_sigma=float("inf"),
-        w_global=0.2,
-        w_reg=1.0,
-        **kwargs
-    ):
-
-        def compute_alpha(beta, t):
-            beta = torch.cat([torch.zeros(1).to(beta.device), beta], dim=0)
-            a = (1 - beta).cumprod(dim=0).index_select(0, t + 1)  # .view(-1, 1, 1, 1)
-            return a
-
+        n_steps = 5000
+        step_lr = 0.0000010
         sigmas = (1.0 - self.alphas).sqrt() / self.alphas.sqrt()
         pos_traj = []
+        num_graphs = 1
+
+        # numpy_array = sigmas.cpu().numpy()
+        # Save the NumPy array to a text file
+        # np.savetxt(f'sigmas_{n_steps}.txt', numpy_array)
+        # print(f'sigmas is saved')
 
         self.eval()
         with torch.no_grad():
-
             seq = range(self.num_timesteps - n_steps, self.num_timesteps)
             seq_next = [-1] + list(seq[:-1])
             pos = pos_init * sigmas[-1]
 
-            for i, j in tqdm(zip(reversed(seq), reversed(seq_next)), desc="sample"):
+            for i, j in zip(reversed(seq), reversed(seq_next)):
                 t = torch.full(
                     size=(num_graphs,),
                     fill_value=i,
@@ -483,52 +345,18 @@ class DualEncoderEpsNetwork(nn.Module):
                     device=pos.device,
                 )
 
-                (
-                    edge_inv_global,
-                    edge_inv_local,
-                    edge_index,
-                    edge_type,
-                    edge_length,
-                    local_edge_mask,
-                ) = self(
-                    atom_type=atom_type,
-                    pos=pos,
-                    bond_index=bond_index,
-                    bond_type=bond_type,
-                    batch=batch,
-                    time_step=t,
-                    return_edges=True,
-                    extend_order=extend_order,
-                    extend_radius=extend_radius,
-                )  # (E_global, 1), (E_local, 1)
-
-                # Local
-                node_eq_local = eq_transform(
-                    edge_inv_local,
+                # Seed RNG before noise generation
+                torch.manual_seed(i)  # Use the timestep 'i' as the seed for determinism
+                noise = torch.randn_like(pos)
+                eps_pos = self.get_diffusion_noise(
                     pos,
-                    edge_index[:, local_edge_mask],
-                    edge_length[local_edge_mask],
+                    t,
+                    atom_type,
+                    bond_index,
+                    bond_type,
+                    batch,
+                    torch.tensor(1.0) if include_global[i] < 0.5 else torch.tensor(0.0),
                 )
-                if clip_local is not None:
-                    node_eq_local = clip_norm(node_eq_local, limit=clip_local)
-                # Global
-                if sigmas[i] < global_start_sigma:
-                    edge_inv_global = edge_inv_global * (
-                        1 - local_edge_mask.view(-1, 1).float()
-                    )
-                    node_eq_global = eq_transform(
-                        edge_inv_global, pos, edge_index, edge_length
-                    )
-                    node_eq_global = clip_norm(node_eq_global, limit=clip)
-                else:
-                    node_eq_global = 0
-                # Sum
-                eps_pos = (
-                    node_eq_local + node_eq_global * w_global
-                )  # + eps_pos_reg * w_reg
-                noise = torch.randn_like(
-                    pos
-                )  #  center_pos(torch.randn_like(pos), batch)
                 step_size = step_lr * (sigmas[i] / 0.01) ** 2
                 pos_next = (
                     pos
@@ -536,15 +364,187 @@ class DualEncoderEpsNetwork(nn.Module):
                     + noise * torch.sqrt(step_size * 2)
                 )
                 pos = pos_next
-                if torch.isnan(pos).any():
-                    print("NaN detected. Please restart.")
-                    raise FloatingPointError()
                 pos = center_pos(pos, batch)
-                if clip_pos is not None:
-                    pos = torch.clamp(pos, min=-clip_pos, max=clip_pos)
-                pos_traj.append(pos.clone().cpu())
+                pos_traj.append(pos.clone())
+
+        pos_traj = torch.stack(pos_traj)  # Convert list of tensors to a single tensor
 
         return pos, pos_traj
+
+    def get_diffusion_noise(
+        self,
+        pos: Tensor,
+        t: Tensor,
+        atom_type: Tensor,
+        bond_index: Tensor,
+        bond_type: Tensor,
+        batch: Tensor,
+        include_global: Tensor,
+    ):
+        extend_order = False
+        extend_radius = True
+        clip = 1000
+        w_global = 0.3
+
+        (
+            edge_inv_global,
+            edge_inv_local,
+            edge_index,
+            edge_type,
+            edge_length,
+            local_edge_mask,
+        ) = self(
+            atom_type=atom_type,
+            pos=pos,
+            bond_index=bond_index,
+            bond_type=bond_type,
+            batch=batch,
+            time_step=t,
+            extend_order=extend_order,
+            extend_radius=extend_radius,
+        )
+
+        # Local
+        node_eq_local = eq_transform(
+            edge_inv_local,
+            pos,
+            edge_index[:, local_edge_mask],
+            edge_length[local_edge_mask],
+        )
+
+        #  new idea
+        edge_inv_global = edge_inv_global * (1 - local_edge_mask.view(-1, 1).float())
+        node_eq_global = eq_transform(edge_inv_global, pos, edge_index, edge_length)
+        node_eq_global = clip_norm(node_eq_global, limit=clip)
+        eps_pos = node_eq_local + node_eq_global * w_global * include_global
+
+        return eps_pos
+
+    # def langevin_dynamics_sample_const_coeffs(self, atom_type: Tensor, pos_init: Tensor, bond_index: Tensor, bond_type: Tensor, batch: Tensor):
+
+    #     n_steps = 5000
+    #     sigmas = (1.0 - self.alphas).sqrt() / self.alphas.sqrt()
+    #     pos_traj = []
+    #     num_graphs = 1
+
+    #     self.eval()
+    #     with torch.no_grad():
+    #         seq = range(self.num_timesteps - n_steps, self.num_timesteps)
+    #         seq_next = [-1] + list(seq[:-1])
+    #         pos = pos_init * sigmas[-1]
+
+    #         for i, j in zip(reversed(seq), reversed(seq_next)):
+    #             t = torch.full(size=(num_graphs,), fill_value=i, dtype=torch.long, device=pos.device)
+
+    #             # Seed RNG before noise generation
+    #             torch.manual_seed(i)  # Use the timestep 'i' as the seed for determinism
+    #             noise = torch.randn_like(pos)
+    #             eps_pos = self.get_diffusion_noise(pos, t, atom_type, bond_index, bond_type, batch)
+    #             # constant coeffs
+    #             pos_next = pos + 0.0088238 * eps_pos  + noise * 0.124788
+    #             pos = pos_next
+    #             pos = center_pos(pos, batch)
+    #             pos_traj.append(pos.clone())
+
+    #     pos_traj = torch.stack(pos_traj)  # Convert list of tensors to a single tensor
+    #     return pos, pos_traj
+
+    # def langevin_dynamics_sample_noise_coeff(self, atom_type: Tensor, pos_init: Tensor, bond_index: Tensor, bond_type: Tensor, batch: Tensor , eps_pos_coeff: float, noise_coeff:float ):
+
+    #     n_steps = 5000
+    #     sigmas = (1.0 - self.alphas).sqrt() / self.alphas.sqrt()
+    #     pos_traj = []
+    #     num_graphs = 1
+
+    #     self.eval()
+    #     with torch.no_grad():
+    #         seq = range(self.num_timesteps - n_steps, self.num_timesteps)
+    #         seq_next = [-1] + list(seq[:-1])
+    #         pos = pos_init * sigmas[-1]
+
+    #         for i, j in zip(reversed(seq), reversed(seq_next)):
+    #             t = torch.full(size=(num_graphs,), fill_value=i, dtype=torch.long, device=pos.device)
+
+    #             # Seed RNG before noise generation
+    #             torch.manual_seed(i)  # Use the timestep 'i' as the seed for determinism
+    #             noise = torch.randn_like(pos)
+    #             eps_pos = self.get_diffusion_noise(pos, t, atom_type, bond_index, bond_type, batch)
+    #             # constant coeffs
+    #             # pos_next = pos + 0.0088238 * eps_pos  + noise * noise_coeff
+    #             pos_next = pos + eps_pos_coeff * eps_pos  + noise * noise_coeff
+    #             pos = pos_next
+    #             pos = center_pos(pos, batch)
+    #             pos_traj.append(pos.clone())
+
+    #     pos_traj = torch.stack(pos_traj)  # Convert list of tensors to a single tensor
+    #     return pos, pos_traj
+
+    # def langevin_dynamics_sample_velocity(self, atom_type: Tensor, pos_init: Tensor, bond_index: Tensor, bond_type: Tensor, batch: Tensor):
+
+    #     n_steps = 5000
+    #     step_lr = 0.0000010
+    #     sigmas = (1.0 - self.alphas).sqrt() / self.alphas.sqrt()
+    #     pos_traj = []
+    #     num_graphs = 1
+
+    #     self.eval()
+    #     with torch.no_grad():
+    #         seq = range(self.num_timesteps - n_steps, self.num_timesteps)
+    #         seq_next = [-1] + list(seq[:-1])
+    #         pos = pos_init * sigmas[-1]
+
+    #         # langevin dynamics
+    #         # t_list = []
+    #         # sigmas_i_list = []
+    #         # vel_list = []
+    #         # accel_list = []
+    #         # time_step = torch.tensor(1) # fs
+    #         # fric_coeff = torch.tensor(2) # 1 / fs
+    #         # mass = torch.tensor(20) # daltons
+    #         # KT = torch.tensor(0.00024892633840065836)
+    #         # temp_fac = torch.sqrt(2 * fric_coeff * KT * time_step / mass)
+    #         # vel = torch.zeros_like(pos)
+    #         # scale = torch.tensor(1)
+
+    #         # print('before sampling loop')
+    #         for i, j in zip(reversed(seq), reversed(seq_next)):
+    #             t = torch.full(size=(num_graphs,), fill_value=i, dtype=torch.long, device=pos.device)
+
+    #             # Seed RNG before noise generation
+    #             torch.manual_seed(i)  # Use the timestep 'i' as the seed for determinism
+    #             noise = torch.randn_like(pos)
+    #             eps_pos = self.get_diffusion_noise(pos, t, atom_type, bond_index, bond_type, batch)
+    #             step_size = step_lr * (sigmas[i] / 0.01) ** 2
+    #             pos_next = pos + step_size * eps_pos / sigmas[i] + noise * torch.sqrt(step_size * 2)
+
+    #             # constant coeffs
+    #             # pos_next = pos + 0.0088238 * eps_pos  + noise * 0.124788
+
+    #             # langavin dynamics
+    #             # accel = scale * eps_pos / mass
+    #             # pos_next = pos + vel*time_step
+    #             # vel_next = vel - vel*fric_coeff*time_step + accel*time_step + temp_fac * noise
+    #             # pos = pos_next
+    #             # vel = vel_next
+    #             # pos = center_pos(pos, batch)
+    #             # pos_traj.append(pos.clone())
+
+    #             # t_list.append(t.item())
+    #             # sigmas_i_list.append(sigmas[i].item())
+    #             # vel_list.append(vel.cpu().numpy())
+    #             # accel_list.append(accel.cpu().numpy())
+
+    #         # all_lists_map = {
+    #         # "sigmas": sigmas.cpu().numpy(),
+    #         # "alphas": self.alphas.cpu().numpy(),
+    #         # "t_list": t_list,
+    #         # "sigmas_i_list": sigmas_i_list,
+    #         # "vel_list": vel_list,
+    #         # "accel_list": accel_list
+    #         # }
+
+    #     pos_traj = torch.stack(pos_traj)  # Convert list of tensors to a single tensor
+    #     return pos, pos_traj #, all_lists_map
 
 
 def is_bond(edge_type):
@@ -568,7 +568,6 @@ def is_local_edge(edge_type):
 
 
 def is_train_edge(edge_index):
-
     return torch.ones(edge_index.size(1), device=edge_index.device).bool()
 
 
