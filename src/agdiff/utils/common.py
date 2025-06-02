@@ -1,10 +1,10 @@
 import copy
 import warnings
-import numpy as np
 
+import numpy as np
 import torch
 import torch.nn as nn
-from torch_geometric.data import Data, Batch
+from torch_geometric.data import Batch, Data
 
 
 # customize exp lr scheduler with min lr

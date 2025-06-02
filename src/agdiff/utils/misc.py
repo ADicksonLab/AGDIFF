@@ -1,13 +1,14 @@
-import os
-import time
-import random
 import logging
-import torch
-import numpy as np
+import os
+import random
+import time
 from glob import glob
 from logging import Logger
-from tqdm.auto import tqdm
+
+import numpy as np
+import torch
 from torch_geometric.data import Batch
+from tqdm.auto import tqdm
 
 
 class BlackHole(object):

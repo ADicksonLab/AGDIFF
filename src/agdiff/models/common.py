@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import radius_graph, radius
-from torch_scatter import scatter_mean, scatter_add, scatter_max
+from torch_geometric.nn import radius, radius_graph
+from torch_geometric.utils import dense_to_sparse, to_dense_adj
+from torch_scatter import scatter_add, scatter_max, scatter_mean
 from torch_sparse import coalesce
-from torch_geometric.utils import to_dense_adj, dense_to_sparse
 
 from agdiff.utils.chem import BOND_TYPES
 

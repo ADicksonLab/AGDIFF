@@ -1,3 +1,3 @@
-from .schnet import *
-from .gin import *
 from .edge import *
+from .gin import *
+from .schnet import *

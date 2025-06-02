@@ -1,15 +1,16 @@
-import torch
-import numpy as np
-import pandas as pd
 import multiprocessing as mp
-from torch_geometric.data import Data
-from easydict import EasyDict
-from tqdm.auto import tqdm
-from rdkit import Chem
-from rdkit.Chem.rdForceFieldHelpers import MMFFOptimizeMolecule
 from functools import partial
 
-from ..chem import set_rdmol_positions, get_best_rmsd
+import numpy as np
+import pandas as pd
+import torch
+from easydict import EasyDict
+from rdkit import Chem
+from rdkit.Chem.rdForceFieldHelpers import MMFFOptimizeMolecule
+from torch_geometric.data import Data
+from tqdm.auto import tqdm
+
+from ..chem import get_best_rmsd, set_rdmol_positions
 
 
 def get_rmsd_confusion_matrix(data: Data, useFF=False):

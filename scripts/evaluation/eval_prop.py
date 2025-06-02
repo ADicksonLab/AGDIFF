@@ -1,15 +1,17 @@
+import argparse
 import os
 import pickle
-import argparse
-import torch
-import numpy as np
 import sys
-from psikit import Psikit
-from tqdm.auto import tqdm
+
+import numpy as np
+import torch
 from easydict import EasyDict
+from psikit import Psikit
 from torch_geometric.data import Data
-from agdiff.utils.datasets import PackedConformationDataset
+from tqdm.auto import tqdm
+
 from agdiff.utils.chem import set_rdmol_positions
+from agdiff.utils.datasets import PackedConformationDataset
 
 
 class PropertyCalculator(object):

@@ -1,29 +1,29 @@
-import os
 import argparse
+import copy
+import os
 import pickle
-import yaml
-import torch
-import numpy as np
+import random
 from glob import glob
-from tqdm.auto import tqdm
+
+import numpy as np
+import torch
+import yaml
 from easydict import EasyDict
-
-from models.epsnet import get_model
-from utils.datasets import PackedConformationDataset
-from utils.transforms import Compose, CountNodesPerGraph, AddHigherOrderEdges
-from utils.misc import get_new_log_dir, seed_all, repeat_data
-from torch_geometric.utils import to_dense_adj, dense_to_sparse, remove_self_loops
 from models.common import _extend_graph_order
-
+from models.epsnet import get_model
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import HybridizationType
-import copy
-import random
-from torch_scatter import scatter
 from torch_geometric.data import Data
-from utils.chem import BOND_TYPES
+from torch_geometric.utils import (dense_to_sparse, remove_self_loops,
+                                   to_dense_adj)
+from torch_scatter import scatter
 from torch_sparse import coalesce
+from tqdm.auto import tqdm
+from utils.chem import BOND_TYPES
+from utils.datasets import PackedConformationDataset
+from utils.misc import get_new_log_dir, repeat_data, seed_all
+from utils.transforms import AddHigherOrderEdges, Compose, CountNodesPerGraph
 
 
 def num_confs(num: str):
