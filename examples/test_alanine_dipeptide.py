@@ -1,23 +1,24 @@
+import argparse
 import os
 import os.path as osp
-import argparse
 import pickle
-import yaml
-import torch
+import random
 from glob import glob
-from tqdm.auto import tqdm
+
+import mdtraj as mdj
+import numpy as np
+import torch
+import yaml
 from easydict import EasyDict
 from rdkit.Chem import AllChem
-import random
-import numpy as np
-import mdtraj as mdj
+from tqdm.auto import tqdm
 
-from agdiff.models.epsnet import *
-from agdiff.utils.datasets import *
-from agdiff.utils.transforms import *
-from agdiff.utils.misc import *
 from agdiff.models.common import _extend_graph_order
+from agdiff.models.epsnet import *
 from agdiff.utils.chem import BOND_TYPES
+from agdiff.utils.datasets import *
+from agdiff.utils.misc import *
+from agdiff.utils.transforms import *
 
 
 def rdmol_to_data(mol: Mol, pdb_path: str, smiles=None):

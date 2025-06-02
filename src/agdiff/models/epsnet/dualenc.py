@@ -1,24 +1,21 @@
-import torch
-from torch import nn
-from torch_scatter import scatter_add, scatter_mean
-from torch_scatter import scatter
-from torch_geometric.data import Data, Batch
+import pdb
+import time
+
 import numpy as np
+import torch
+import torch.nn.functional as F
 from numpy import pi as PI
+from torch import nn
+from torch_geometric.data import Batch, Data
+from torch_scatter import scatter, scatter_add, scatter_mean
 from tqdm.auto import tqdm
 
 from agdiff.utils.chem import BOND_TYPES
-from ..common import (
-    MultiLayerPerceptron,
-    assemble_atom_pair_feature,
-    generate_symmetric_edge_noise,
-    extend_graph_order_radius,
-)
-from ..encoder import SchNetEncoder, GINEncoder, get_edge_encoder
-from ..geometry import get_distance, get_angle, get_dihedral, eq_transform
-import pdb
-import torch.nn.functional as F
-import time
+
+from ..common import (MultiLayerPerceptron, assemble_atom_pair_feature,
+                      extend_graph_order_radius, generate_symmetric_edge_noise)
+from ..encoder import GINEncoder, SchNetEncoder, get_edge_encoder
+from ..geometry import eq_transform, get_angle, get_dihedral, get_distance
 
 
 def get_beta_schedule(beta_schedule, *, beta_start, beta_end, num_diffusion_timesteps):

@@ -1,14 +1,14 @@
 from typing import Callable, Union
-from torch_geometric.typing import OptPairTensor, Adj, OptTensor, Size
 
 import torch
-from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_sparse import SparseTensor, matmul
+from torch import Tensor
 from torch_geometric.nn.conv import MessagePassing
+from torch_geometric.typing import Adj, OptPairTensor, OptTensor, Size
+from torch_sparse import SparseTensor, matmul
 
-from ..common import MeanReadout, SumReadout, MultiLayerPerceptron
+from ..common import MeanReadout, MultiLayerPerceptron, SumReadout
 
 
 class GINEConv(MessagePassing):

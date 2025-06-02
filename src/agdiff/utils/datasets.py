@@ -1,22 +1,21 @@
-import os
-import pickle
 import copy
 import json
-from collections import defaultdict
-import numpy as np
+import os
+import pickle
 import random
+from collections import defaultdict
 
+import networkx as nx
+import numpy as np
+import rdkit
 import torch
-from torch_geometric.data import Data, Dataset, Batch
+from rdkit import Chem, RDLogger
+from rdkit.Chem.rdchem import BondType, HybridizationType, Mol
+from torch_geometric.data import Batch, Data, Dataset
 from torch_geometric.utils import to_networkx
 from torch_scatter import scatter
-
-import rdkit
-from rdkit import Chem
-from rdkit.Chem.rdchem import Mol, HybridizationType, BondType
-from rdkit import RDLogger
-import networkx as nx
 from tqdm import tqdm
+
 from .chem import BOND_TYPES, mol_to_smiles
 
 # import sidechainnet as scn

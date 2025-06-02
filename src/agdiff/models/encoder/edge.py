@@ -1,16 +1,17 @@
-import torch
-import torch.nn.functional as F
-from torch.nn import Module, Sequential, ModuleList, Linear, Embedding
-from torch_geometric.nn import MessagePassing, radius_graph
-from torch_sparse import coalesce
-from torch_geometric.data import Data
-from torch_geometric.utils import to_dense_adj, dense_to_sparse
 from math import pi as PI
 
-from agdiff.utils.chem import BOND_TYPES
-from ..common import MeanReadout, SumReadout, MultiLayerPerceptron
-
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from torch.nn import Embedding, Linear, Module, ModuleList, Sequential
+from torch_geometric.data import Data
+from torch_geometric.nn import MessagePassing, radius_graph
+from torch_geometric.utils import dense_to_sparse, to_dense_adj
+from torch_sparse import coalesce
+
+from agdiff.utils.chem import BOND_TYPES
+
+from ..common import MeanReadout, MultiLayerPerceptron, SumReadout
 
 
 class GaussianSmearingEdgeEncoder(Module):

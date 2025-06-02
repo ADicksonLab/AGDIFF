@@ -1,11 +1,12 @@
 import copy
+
 import torch
 from torch_geometric.data import Data
 from torch_geometric.transforms import Compose
-from torch_geometric.utils import to_dense_adj, dense_to_sparse
+from torch_geometric.utils import dense_to_sparse, to_dense_adj
 from torch_sparse import coalesce
 
-from .chem import BOND_TYPES, BOND_NAMES, get_atom_symbol
+from .chem import BOND_NAMES, BOND_TYPES, get_atom_symbol
 
 
 class AddHigherOrderEdges(object):
