@@ -25,9 +25,10 @@ from torch_geometric.data import Data
 from utils.chem import BOND_TYPES
 from torch_sparse import coalesce
 
+
 def num_confs(num: str):
     print(f"Parsing num_confs argument: {num}")
-    if num.endswith('x'):
+    if num.endswith("x"):
         multiplier = int(num[:-1])
         print(f"num_confs ends with 'x', multiplier set to: {multiplier}")
         return lambda x: x * multiplier
@@ -37,6 +38,7 @@ def num_confs(num: str):
         return lambda x: absolute
     else:
         raise ValueError(f"Invalid num_confs value: {num}")
+
 
 def rdmol_to_data(mol: Chem.Mol, smiles=None):
     print("Converting RDKit molecule to PyTorch Geometric Data object...")
@@ -100,7 +102,9 @@ def rdmol_to_data(mol: Chem.Mol, smiles=None):
     print("Coalescing edge_index and edge_type to ensure unique edges...")
     try:
         edge_index, edge_type = coalesce(edge_index, edge_type, N, N)
-        print(f"After coalesce: edge_index shape: {edge_index.shape}, edge_type shape: {edge_type.shape}")
+        print(
+            f"After coalesce: edge_index shape: {edge_index.shape}, edge_type shape: {edge_type.shape}"
+        )
     except Exception as e:
         print(f"Error during coalesce of edge_index and edge_type: {e}")
         raise
@@ -116,7 +120,7 @@ def rdmol_to_data(mol: Chem.Mol, smiles=None):
             pos=pos,
             edge_index=edge_index,
             edge_type=edge_type,
-            smiles=smiles
+            smiles=smiles,
         )
         print("Data object created successfully.")
     except Exception as e:
@@ -125,27 +129,61 @@ def rdmol_to_data(mol: Chem.Mol, smiles=None):
 
     return data
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Generate conformers from SMILES and save as SDF.")
-    parser.add_argument('ckpt', type=str, help='Path for loading the checkpoint')
-    parser.add_argument('--smiles', type=str, required=True, help='Input SMILES string')
-    parser.add_argument('--out_sdf', type=str, required=True, help='Output SDF file path')
-    parser.add_argument('--save_traj', action='store_true', default=False,
-                        help='Whether to store the whole trajectory for sampling')
-    parser.add_argument('--num_confs', type=num_confs, default=num_confs('5x'),
-                        help='Number of conformers to generate. Use "Nx" to multiply, e.g., "2x"')
-    parser.add_argument('--tag', type=str, default='', help='Tag for the output directory')
-    parser.add_argument('--device', type=str, default='cuda', help='Device to use: "cuda" or "cpu"')
-    parser.add_argument('--clip', type=float, default=1000.0, help='Clipping value for gradients')
-    parser.add_argument('--n_steps', type=int, default=5000,
-                        help='Number of sampling steps')
-    parser.add_argument('--global_start_sigma', type=float, default=0.5,
-                        help='Enable global gradients only when noise is low')
-    parser.add_argument('--w_global', type=float, default=1.0, help='Weight for global gradients')
-    parser.add_argument('--sampling_type', type=str, default='ld',
-                        help='Sampling method: generalized, ddpm_noisy, ld')
-    parser.add_argument('--eta', type=float, default=1.0,
-                        help='Weight for DDIM and DDPM: 0->DDIM, 1->DDPM')
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Generate conformers from SMILES and save as SDF."
+    )
+    parser.add_argument("ckpt", type=str, help="Path for loading the checkpoint")
+    parser.add_argument("--smiles", type=str, required=True, help="Input SMILES string")
+    parser.add_argument(
+        "--out_sdf", type=str, required=True, help="Output SDF file path"
+    )
+    parser.add_argument(
+        "--save_traj",
+        action="store_true",
+        default=False,
+        help="Whether to store the whole trajectory for sampling",
+    )
+    parser.add_argument(
+        "--num_confs",
+        type=num_confs,
+        default=num_confs("5x"),
+        help='Number of conformers to generate. Use "Nx" to multiply, e.g., "2x"',
+    )
+    parser.add_argument(
+        "--tag", type=str, default="", help="Tag for the output directory"
+    )
+    parser.add_argument(
+        "--device", type=str, default="cuda", help='Device to use: "cuda" or "cpu"'
+    )
+    parser.add_argument(
+        "--clip", type=float, default=1000.0, help="Clipping value for gradients"
+    )
+    parser.add_argument(
+        "--n_steps", type=int, default=5000, help="Number of sampling steps"
+    )
+    parser.add_argument(
+        "--global_start_sigma",
+        type=float,
+        default=0.5,
+        help="Enable global gradients only when noise is low",
+    )
+    parser.add_argument(
+        "--w_global", type=float, default=1.0, help="Weight for global gradients"
+    )
+    parser.add_argument(
+        "--sampling_type",
+        type=str,
+        default="ld",
+        help="Sampling method: generalized, ddpm_noisy, ld",
+    )
+    parser.add_argument(
+        "--eta",
+        type=float,
+        default=1.0,
+        help="Weight for DDIM and DDPM: 0->DDIM, 1->DDPM",
+    )
     args = parser.parse_args()
 
     print("Starting generate_conformer.py script...")
@@ -161,14 +199,16 @@ if __name__ == '__main__':
         exit(1)
 
     # Load configuration
-    config_path = glob(os.path.join(os.path.dirname(os.path.dirname(args.ckpt)), '*.yml'))
+    config_path = glob(
+        os.path.join(os.path.dirname(os.path.dirname(args.ckpt)), "*.yml")
+    )
     if len(config_path) == 0:
         print("Configuration YAML file not found.")
         exit(1)
     config_path = config_path[0]
     print(f"Loading configuration from {config_path}...")
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             config = EasyDict(yaml.safe_load(f))
         print("Configuration loaded successfully.")
     except Exception as e:
@@ -187,7 +227,7 @@ if __name__ == '__main__':
 
     # Determine log/output directory
     log_dir = os.path.dirname(os.path.dirname(args.ckpt))
-    output_dir = get_new_log_dir(log_dir, 'sample', tag=args.tag)
+    output_dir = get_new_log_dir(log_dir, "sample", tag=args.tag)
     print(f"Output directory is set to: {output_dir}")
     try:
         os.makedirs(output_dir, exist_ok=True)
@@ -197,11 +237,11 @@ if __name__ == '__main__':
         exit(1)
 
     # Model loading
-    print('Loading model...')
+    print("Loading model...")
     try:
-        model = get_model(ckpt['config'].model).to(args.device)
+        model = get_model(ckpt["config"].model).to(args.device)
         print("Model instantiated successfully.")
-        model.load_state_dict(ckpt['model'])
+        model.load_state_dict(ckpt["model"])
         print("Model state loaded successfully.")
         model.eval()
         print("Model set to evaluation mode.")
@@ -231,7 +271,7 @@ if __name__ == '__main__':
         exit(1)
 
     # Generate an initial 3D conformer
-    print('Generating initial 3D conformer...')
+    print("Generating initial 3D conformer...")
     try:
         params = AllChem.ETKDGv3()
         params.randomSeed = seed_random  # Use the same random seed for reproducibility
@@ -260,10 +300,14 @@ if __name__ == '__main__':
 
     # Apply transforms
     print("Applying transforms to data object...")
-    transforms = Compose([
-        CountNodesPerGraph(),
-        AddHigherOrderEdges(order=config.model.edge_order)  # Offline edge augmentation
-    ])
+    transforms = Compose(
+        [
+            CountNodesPerGraph(),
+            AddHigherOrderEdges(
+                order=config.model.edge_order
+            ),  # Offline edge augmentation
+        ]
+    )
 
     try:
         data_input = transforms(data_input)
@@ -323,7 +367,7 @@ if __name__ == '__main__':
                     clip=args.clip,
                     clip_local=clip_local,
                     sampling_type=args.sampling_type,
-                    eta=args.eta
+                    eta=args.eta,
                 )
             pos_gen = pos_gen.cpu()
             print("Conformations sampled successfully.")
@@ -335,16 +379,16 @@ if __name__ == '__main__':
             results.append(data_input)
             done_smiles.add(data_input.smiles)
 
-            save_path = os.path.join(output_dir, 'samples_0.pkl')
-            print(f'Saving samples to: {save_path}')
-            with open(save_path, 'wb') as f:
+            save_path = os.path.join(output_dir, "samples_0.pkl")
+            print(f"Saving samples to: {save_path}")
+            with open(save_path, "wb") as f:
                 pickle.dump(results, f)
 
             success = True
             break  # Break the retry loop if successful
         except FloatingPointError:
             clip_local = 20
-            print('FloatingPointError encountered. Retrying with local clipping.')
+            print("FloatingPointError encountered. Retrying with local clipping.")
         except Exception as e:
             print(f"Error during sampling: {e}")
             exit(1)
@@ -354,9 +398,9 @@ if __name__ == '__main__':
         exit(1)
 
     # Save all samples
-    save_path = os.path.join(output_dir, 'samples_all.pkl')
-    print(f'Saving all samples to: {save_path}')
-    with open(save_path, 'wb') as f:
+    save_path = os.path.join(output_dir, "samples_all.pkl")
+    print(f"Saving all samples to: {save_path}")
+    with open(save_path, "wb") as f:
         pickle.dump(results, f)
 
     # Reshape generated positions
@@ -402,10 +446,10 @@ if __name__ == '__main__':
 
     # Optionally save the trajectory
     if args.save_traj:
-        traj_save_path = os.path.join(output_dir, 'trajectory.pkl')
+        traj_save_path = os.path.join(output_dir, "trajectory.pkl")
         print(f"Saving sampling trajectory to {traj_save_path}...")
         try:
-            with open(traj_save_path, 'wb') as f:
+            with open(traj_save_path, "wb") as f:
                 pickle.dump(pos_gen_traj, f)
             print(f"Sampling trajectory saved to {traj_save_path} successfully.")
         except Exception as e:
