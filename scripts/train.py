@@ -1,22 +1,22 @@
+import argparse
 import os
 import shutil
-import argparse
-import yaml
-from easydict import EasyDict
-from tqdm.auto import tqdm
 from glob import glob
+
 import torch
 import torch.utils.tensorboard
+import yaml
+from easydict import EasyDict
 from torch.nn.utils import clip_grad_norm_
 from torch_geometric.data import DataLoader
+from tqdm.auto import tqdm
 
-
-from agdiff.models.epsnet import get_model
-from agdiff.utils.datasets import ConformationDataset
-from agdiff.utils.transforms import *
-from agdiff.utils.misc import *
-from agdiff.utils.common import get_optimizer, get_scheduler
 from agdiff import __file__ as agdiff_root
+from agdiff.models.epsnet import get_model
+from agdiff.utils.common import get_optimizer, get_scheduler
+from agdiff.utils.datasets import ConformationDataset
+from agdiff.utils.misc import *
+from agdiff.utils.transforms import *
 
 torch.backends.cudnn.benchmark = True
 
@@ -34,8 +34,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--logdir", type=str, default=os.path.join(project_root_dir, "logs")
     )
-    parser.add_argument("--sample_input_path" , type=str, default="trace_sample_inputs/sample_input.pt")
-    parser.add_argument("--sample_input_test_path" , type=str, default="trace_sample_inputs/sample_input_test.pt")
+    parser.add_argument(
+        "--sample_input_path", type=str, default="trace_sample_inputs/sample_input.pt"
+    )
+    parser.add_argument(
+        "--sample_input_test_path",
+        type=str,
+        default="trace_sample_inputs/sample_input_test.pt",
+    )
     args = parser.parse_args()
 
     resume = os.path.isdir(args.config)
@@ -215,13 +221,12 @@ if __name__ == "__main__":
     def compare_outputs(output_traced, output_eager, atol=1e-5):
         return torch.allclose(output_traced, output_eager, atol=atol)
 
-    best_val_loss = float("inf") 
-
+    best_val_loss = float("inf")
 
     # Sample input for trace get_diffusion_noise
     sample_input = torch.load(args.sample_input_path)
     sample_input_test = torch.load(args.sample_input_test_path)
-       
+
     try:
         for it in range(start_iter, config.train.max_iters + 1):
             batch = train(it)
@@ -243,17 +248,13 @@ if __name__ == "__main__":
                 )
 
                 if avg_val_loss < best_val_loss:
-                    model = model.to(args.trace_device)  
-                    best_val_loss = avg_val_loss  
+                    model = model.to(args.trace_device)
+                    best_val_loss = avg_val_loss
                     best_model_dir = os.path.join(log_dir, "best_model")
                     if not os.path.exists(best_model_dir):
                         os.makedirs(best_model_dir)
-                    eager_path = os.path.join(
-                        best_model_dir, "best_model_eager.pt"
-                    )
-                    trace_path = os.path.join(
-                        best_model_dir, "best_model_trace.pt"
-                    )
+                    eager_path = os.path.join(best_model_dir, "best_model_eager.pt")
+                    trace_path = os.path.join(best_model_dir, "best_model_trace.pt")
                     # # Save the best model
                     # torch.save({
                     #     'config': config,
@@ -269,9 +270,7 @@ if __name__ == "__main__":
                     torch.save(model, eager_path)
                     logger.info(f"New best model saved with loss {avg_val_loss}")
 
-                    print(
-                        f'best_model_trace_path: {eager_path}'
-                    )
+                    print(f"best_model_trace_path: {eager_path}")
 
                     cpu_model = model.to(args.trace_device)
                     cpu_model.eval()
@@ -284,7 +283,7 @@ if __name__ == "__main__":
                         strict=True,
                     )
                     traced_model.eval()
-                    
+
                     torch.jit.save(traced_model, trace_path)
                     print("Traced model saved successfully")
 
@@ -297,15 +296,11 @@ if __name__ == "__main__":
 
                     # Compare the outputs
                     if compare_outputs(output_traced, output_eager):
-                        print(
-                            "Test passed!"
-                        )
+                        print("Test passed!")
                     else:
-                        print(
-                            "Test failed!"
-                        )
+                        print("Test failed!")
                         raise Exception("FAILED: OUTPUTS DO NOT MATCH!!!")
-                    
+
                     # Save the trace code and computational graph for debugging
                     method_name = traced_model._c._method_names()[0]
                     method = traced_model._c._get_method(method_name)
@@ -335,8 +330,7 @@ if __name__ == "__main__":
                 cpu_model = model.to(args.trace_device)
 
         # Final test!
-        best_model_eager_cpu = torch.load(eager_path, map_location="cpu"
-        )
+        best_model_eager_cpu = torch.load(eager_path, map_location="cpu")
 
         best_model_eager_cpu.eval()
         best_model_trace_cpu = torch.jit.load(trace_path, map_location="cpu")
@@ -347,14 +341,10 @@ if __name__ == "__main__":
 
         # Compare the outputs
         if compare_outputs(output_traced, output_eager):
-            print(
-                "Final Test passed!"
-            )
+            print("Final Test passed!")
             logger.info(f"final saved model PASSED: OUTPUTS MATCH!")
         else:
-            print(
-                "Final Test failed!"
-            )
+            print("Final Test failed!")
             logger.info(f"final saved model FAILED: OUTPUTS DO NOT MATCH!")
 
     except KeyboardInterrupt:
