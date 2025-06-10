@@ -67,6 +67,81 @@ Once you installed all the dependencies, you should install the package locally 
 pip install -e .
 ```
 
+### Install PyG C++ API
+
+In order to successfully compile the c++ example you need to install the exact version of the Pytorch and PyG dependencies C++ APIs as you used for saving the scripted model in Python in yout mlforce_ft env.
+
+1- Install libtorch:
+
+```bash
+wget https://download.pytorch.org/libtorch/cu121/libtorch-cxx11-abi-shared-with-deps-2.4.0%2Bcu121.zip
+```
+
+```bash
+export CMAKE_PREFIX_PATH="<PATH_TO_LIBTORCH>"
+```
+
+2- Install PyG dependencies C++ APIs by downloading the zip file of the correct versions.
+
+```bash
+cd ~
+```
+```bash
+mkdir packages && cd packages
+```
+```bash
+wget https://github.com/rusty1s/pytorch_cluster/releases/tag/1.6.3.zip
+```
+
+```bash
+wget https://github.com/rusty1s/pytorch_sparse/releases/tag/0.6.18.zip
+```
+
+```bash
+wget https://github.com/rusty1s/pytorch_scatter/releases/tag/2.1.2.zip
+```
+
+change c++ standard 14 t o17 in cmakelist.txt.
+
+Example of installing torch scatter C++ API based upon **[pytorch_geometric](https://github.com/pyg-team/pytorch_geometric/tree/master/examples/cpp)**
+
+```bash
+cd "<PATH_TO_PYTORCH_SCATTER>"
+```
+
+```bash
+mkdir build && cd build
+```
+Run this to obtain -DCMAKE_PREFIX_PATH:
+ 
+```bash
+import torch; print(torch.utils.cmake_prefix_path)
+``` 
+
+```bash
+cmake -DWITH_CUDA=on -DCMAKE_PREFIX_PATH="..." ..
+```
+
+```bash
+make -j 8
+```
+
+```bash
+make install -j 8
+```
+
+<!-- ```bash
+export LD_LIBRARY_PATH=~/.local/lib:$LD_LIBRARY_PATH
+```
+```bash
+export CMAKE_PREFIX_PATH=~/.local/share/cmake/TorchScatter:$CMAKE_PREFIX_PATH
+```
+
+```bash
+export CMAKE_PREFIX_PATH=~/.local/share/cmake/TorchCluster:~/mnt/home/fathinia~/.local/share/cmake/TorchScatter:$CMAKE_PREFIX_PATH
+``` -->
+
+
 ## Dataset ##
 
 ### Official Dataset
