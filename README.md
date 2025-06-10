@@ -40,6 +40,8 @@ https://github.com/user-attachments/assets/78feda75-3a20-422a-9b3f-f96fceea69cc
 
 ### Install dependencies via Conda/Mamba
 
+Make sure to install the versions of the PyG dependencies specified below, as those should be compatible with the C++ API.
+
 ```bash
 conda env create -f agdiff.yml
 ```
@@ -47,16 +49,16 @@ conda env create -f agdiff.yml
 conda activate agdiff
 ```
 ```bash
-pip install torch_geometric
+pip install torch-geometric==2.6.1
 ```
 ```bash
-pip install torch-scatter -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
+pip install torch-scatter==2.1.2+pt24cu121 -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
 ```
 ```bash
-pip install torch-sparse -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
+pip install torch-sparse==0.6.18+pt24cu121 -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
 ```
 ```bash
-pip install torch-cluster -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
+pip install torch-cluster==1.6.3+pt24cu121 -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
 ```
 
 Once you installed all the dependencies, you should install the package locally in editable mode:
@@ -64,8 +66,6 @@ Once you installed all the dependencies, you should install the package locally 
 ```bash
 pip install -e .
 ```
-
-
 
 ## Dataset ##
 
